@@ -36,11 +36,19 @@
 
       google.maps.event.addListener(marker, 'click', (function(marker, i) {
         return function() {
-          infowindow.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>');
+          infowindow.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
+          '<ul class="tabs">  <li><a href="javascript:void(0)">Tab1</a></li>   <li><a href="javascript:void(0)">Tab2</a></li>  <li><a href="javascript:void(0)">Tab3</a></li>  <li><a href="javascript:void(0)">Tab4</a></li> </ul>' +
+          ' <section class="tab_content" id="tab1"> <p> Tabbed Conternt 1</p>  </section>'   +
+          ' <section class="tab_content" id="tab2"> <p> Tabbed Conternt 2</p>  </section>'   +
+          ' <section class="tab_content" id="tab3"> <p> Tabbed Conternt 3</p>  </section>'   +
+          ' <section class="tab_content" id="tab4"> <p> Tabbed Conternt 4</p>  </section>'  );
           infowindow.open(map, marker);
         }
       })(marker, i));
     }
   </script>
+
+
+
 </body>
 </html>
