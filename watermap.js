@@ -12,19 +12,37 @@ var map = new google.maps.Map(document.getElementById('map'), {
   mapTypeId: google.maps.MapTypeId.ROADMAP
 });
 
-var infowindow = new google.maps.InfoWindow();
+var infowindow1 = new google.maps.InfoWindow();
+var infowindow2 = new google.maps.InfoWindow();
 
 var marker, i;
 
+// go through all the beach locations
 for (i = 0; i < locations.length; i++) {
   marker = new google.maps.Marker({
     position: new google.maps.LatLng(locations[i][1], locations[i][2]),
     map: map
   });
 
+  //when you hover over a marker
+  google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
+    return function() {
+      infowindow1.setContent('<h3>' + locations[i][0] + '</h3><b>Water Level: </b><p style="color:green;"><b>SAFE</b></p>'  );
+      infowindow1.open(map, marker);
+    }
+  })(marker, i));
+
+  //when you stop hovering over marker
+   google.maps.event.addListener(marker, 'mouseout', (function(marker, i) {
+    return function() {
+      infowindow1.close(map, marker);
+    }
+  })(marker, i));
+
+  // when you click on a marker
   google.maps.event.addListener(marker, 'click', (function(marker, i) {
     return function() {
-      infowindow.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
+      infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
       '<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" > Tab1 </a></li>' +
       '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
       '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
@@ -35,13 +53,14 @@ for (i = 0; i < locations.length; i++) {
       ' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content </p></div>' +
       ' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content </p></div>' +
       ' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content </p></div>' );
-      infowindow.open(map, marker);
+      infowindow2.open(map, marker);
+      infowindow1.close(map, marker);
     }
   })(marker, i));
 }
 
-document.getElementById("defaultOpen").click();
 
+// for the tabs in the info window
 function openTab(evt, cityName) {
 
     // Declare all variables
