@@ -25,13 +25,16 @@ include 'PHPExcel/IOFactory.php';
     {
         echo 'Something wrong with query: ' . mysqli_error($conn);
     }
+
+    $colNames = array();
    
     while($row = mysqli_fetch_array($columns)){
-      // echo $row['Field']."<br>";
+       array_push($colNames,$row['Field']);
     }   
 
+
     // just selection location coordinates ATM
-	$sql = "SELECT nombre_del_sitio,localizacion FROM excel GROUP BY nombre_del_sitio,localizacion";
+	$sql = "SELECT $colNames[1], $colNames[2] FROM excel GROUP BY sitio, coordenadas";
 
 	$result = $conn->query($sql);
 
@@ -48,11 +51,11 @@ include 'PHPExcel/IOFactory.php';
 	if ($result->num_rows > 0) {
        // output data of each row
        while($row = $result->fetch_assoc()) {
-       	  if ( $row['localizacion'] != ""){
-       	     $row['localizacion'] = str_replace( array( '(', ')', '\'', '/', '.', ':', '"', '*', '&', '^', '%', '#', '@' ), '', $row['localizacion']);
-       	     $row['localizacion'] = str_replace( '°', '.', $row['localizacion']);
-       	     $words = explode(' ', $row['localizacion']);  // contains a array of 2 variables N/S coordinate and E/W coordinate
-       	     array_push($words, $row['nombre_del_sitio']);  // push the beach name into the array
+       	  if ( $row[$colNames[2]] != ""){
+       	     $row[$colNames[2]] = str_replace( array( '(', ')', '\'', '/', '.', ':', '"', '*', '&', '^', '%', '#', '@' ), '', $row[$colNames[2]]);
+       	     $row[$colNames[2]] = str_replace( '°', '.', $row[$colNames[2]]);
+       	     $words = explode(' ', $row[$colNames[2]]);  // contains a array of 2 variables N/S coordinate and E/W coordinate
+       	     array_push($words, $row[$colNames[1]]);  // push the beach name into the array
 
        	     // retrieve last character of words[0]  which will be N or S
        	     for( $i = 0; $i < strlen($words[0]); $i++ ) {
