@@ -1,4 +1,4 @@
-Uses the data from get_data
+
 
 <script type="text/javascript">
     function reqListener () {

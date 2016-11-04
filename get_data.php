@@ -17,6 +17,19 @@ include 'PHPExcel/IOFactory.php';
 		die("Connection failed: " . $conn->connect_error);
 	} 
 
+    // gets all column names 
+    $columnNames = "SHOW COLUMNS FROM excel";
+    $columns = $conn -> query($columnNames);
+
+    if(!$columnNames)
+    {
+        echo 'Something wrong with query: ' . mysqli_error($conn);
+    }
+   
+    while($row = mysqli_fetch_array($columns)){
+      // echo $row['Field']."<br>";
+    }   
+
     // just selection location coordinates ATM
 	$sql = "SELECT nombre_del_sitio,localizacion FROM excel GROUP BY nombre_del_sitio,localizacion";
 
@@ -64,6 +77,7 @@ include 'PHPExcel/IOFactory.php';
              	$words[1] = '-' . $words[1] ;
              }
             
+             // an array of arrays
              array_push($locations,$words);
           }
        }
