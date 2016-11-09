@@ -1,4 +1,7 @@
 <?php
+
+// THIS FILE GETS DATA FROM THE DATABASE AND TALKS TO WATERMAP.JS
+
 set_include_path(get_include_path() . PATH_SEPARATOR . 'helpers/');
 include 'PHPExcel/IOFactory.php';
 
@@ -34,7 +37,7 @@ include 'PHPExcel/IOFactory.php';
 
 
     // just selection location coordinates ATM
-	$sql = "SELECT $colNames[1], $colNames[2] FROM excel GROUP BY sitio, coordenadas";
+	$sql = "SELECT * FROM excel WHERE $colNames[0] = (SELECT MAX($colNames[0]) FROM excel)";
 
 	$result = $conn->query($sql);
 
@@ -54,30 +57,33 @@ include 'PHPExcel/IOFactory.php';
        	  if ( $row[$colNames[2]] != ""){
        	     $row[$colNames[2]] = str_replace( array( '(', ')', '\'', '/', '.', ':', '"', '*', '&', '^', '%', '#', '@' ), '', $row[$colNames[2]]);
        	     $row[$colNames[2]] = str_replace( '°', '.', $row[$colNames[2]]);
-       	     $words = explode(' ', $row[$colNames[2]]);  // contains a array of 2 variables N/S coordinate and E/W coordinate
-       	     array_push($words, $row[$colNames[1]]);  // push the beach name into the array
+             $words = array();
+             array_push($words, $row[$colNames[1]]);  // push the beach name into the array  (index 0 in words)
+       	     $word = explode(' ', $row[$colNames[2]]);  // contains a array of 2 variables N/S coordinate and E/W coordinate ( index 1 and 2 in words)
+             $words = array_merge($words,$word);
+             array_push($words, $row[$colNames[3]]);  // (index 3 in words)
 
        	     // retrieve last character of words[0]  which will be N or S
-       	     for( $i = 0; $i < strlen($words[0]); $i++ ) {
-       	     	$char = substr( $words[0], $i, 1 );
-       	     }
-
-             $words[0] = str_replace($char,'', $words[0]);
-
-             // if S then Coordinate is negative, In our case it will always be N in TJ
-             if ( $char == 'S'){
-             	$words[0] = '-' . $words[0] ;
-             }
-
-             // retrieve last character of words[1] which will be W or E
-             for( $i = 0; $i < strlen($words[1]); $i++ ) {
+       	     for( $i = 0; $i < strlen($words[1]); $i++ ) {
        	     	$char = substr( $words[1], $i, 1 );
        	     }
 
-       	     $words[1] = str_replace($char,'', $words[1]);
+             $words[1] = str_replace($char,'', $words[1]);
+
+             // if S then Coordinate is negative, In our case it will always be N in TJ
+             if ( $char == 'S'){
+             	$words[1] = '-' . $words[1] ;
+             }
+
+             // retrieve last character of words[1] which will be W or E
+             for( $i = 0; $i < strlen($words[2]); $i++ ) {
+       	     	$char = substr( $words[2], $i, 1 );
+       	     }
+
+       	     $words[2] = str_replace($char,'', $words[2]);
        	     // if W, then coordinate is negative, In our case, it will always be W in TJ
              if ( $char == 'W'){
-             	$words[1] = '-' . $words[1] ;
+             	$words[2] = '-' . $words[2] ;
              }
             
              // an array of arrays
