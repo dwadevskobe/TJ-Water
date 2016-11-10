@@ -92,7 +92,7 @@ include 'PHPExcel/IOFactory.php';
        }
 
        // to be retrieved in other file 
-       // CURRENTLY:  locations[0] : latitude  , locations[1] : longitude, locations[2]: beach name
+       // CURRENTLY:  locations[0] : name, locations[1] : latitude, locations[2]: longitude
        echo json_encode($locations);
     } 
     else {
