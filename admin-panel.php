@@ -10,7 +10,9 @@ if(isset($_POST["import"])) {
 	$password = "";
 	$db = 'map';
 	// Others
+	$tabRow = 1;	// The row number where the tabs are written
 	$columnRow = 2;	// The row number where the column names are written
+	$dataRow = 3;   // The row number where the data starts
 
 	/* Checks */
 	// Size
@@ -41,7 +43,9 @@ if(isset($_POST["import"])) {
 	echo "<br/>";
 	
 	// Drop all relevant tables
-	$conn->query("DROP TABLE excel");
+	$conn->query("DROP TABLE history");
+	$conn->query("DROP TABLE tabs");
+	$conn->query("DROP TABLE data");
 	
 	/* Parse excel */
 	$excelFile = PHPExcel_IOFactory::load($_FILES["file"]["tmp_name"]);
@@ -61,7 +65,7 @@ if(isset($_POST["import"])) {
 			$i = str_replace( ' ', '_', $i);
 			$i = remove_accents($i); // Remove accents
 			$i = strtolower($i);
-			// If column name exists, append column number
+			// If column name exists, append column numbers
 			if(in_array($i, $columns)) {
 				$i .= '_' . $column; 
 			}
@@ -70,11 +74,58 @@ if(isset($_POST["import"])) {
 		}
     }
 	
+	// Get tabs data
+	$createTabsQuery = "CREATE TABLE tabs (names TEXT,";
+	$addValuesToTabsQuery = "INSERT INTO tabs (names,";
+	$tabsColumnNames = "";
+    $columnIndexes = array();  
+	$index = 0;	$count = 1;	$startingIndex = -1;
+	for ($column = 'A'; $column != $highestColumm; $column++) {
+		$i = $data->getCell($column . $tabRow)->getValue(); // Get the cell
+		if(!empty($i)) {
+			if($startingIndex == -1)
+				$startingIndex = $index;
+			$tabsColumnNames .= $i . ','; // For the first column
+			// Append the table names, which are numbers starting from 1
+			$createTabsQuery .= 'c' . $count . ' TEXT,';
+			$addValuesToTabsQuery .= 'c' . $count . ',';
+			// Get the column index
+			$columnIndexes[] = "'" . ($index - $startingIndex) . "'";
+			$count++;
+		}
+		$index++;
+	}
+	$createTabsQuery = substr($createTabsQuery, 0, -1) . ')'; // Remove last lingering comma
+	echo $createTabsQuery;
+	echo "<br/>";
+	// Create table
+	if ($conn->query($createTabsQuery) === TRUE)
+		echo "Table excel created successfully";
+	else
+		echo "Error creating table: " . $conn->error;
+	echo "<br/>";
+	// Add values
+	$addValuesToTabsQuery = substr($addValuesToTabsQuery, 0, -1) . ') VALUES (\'' . substr($tabsColumnNames, 0, -1) .'\','; // Continue making the query
+	for ($x = 0; $x < count($columnIndexes); $x++) {
+		$addValuesToTabsQuery .= $columnIndexes[$x]; // Add to query
+		if($x != count($columnIndexes) - 1)
+			$addValuesToTabsQuery .= ','; // Add comma for next column
+		else
+			$addValuesToTabsQuery .= ')'; // Add ending parenthesis		
+	}
+	echo $addValuesToTabsQuery;
+	echo "<br/>";
+	if ($conn->query($addValuesToTabsQuery) === TRUE)
+		echo "Inserted tabs successfully";
+	else
+		echo "Error creating table: " . $conn->error;
+	echo "<br/>";
+		
 	// Create table	and pre-make data insertion query
-	$createTableQuery = "CREATE TABLE excel ("; // Create table query beginning
-	$insertDataQueryHeader = "INSERT INTO excel ("; // Premake the data insertion query to save us from using another for-loop
+	$createTableQuery = "CREATE TABLE history ("; // Create table query beginning
+	$insertDataQueryHeader = "INSERT INTO history ("; // Premake the data insertion query to save us from using another for-loop
 	for ($x = 0; $x < count($columns); $x++) {
-		$createTableQuery .= $columns[$x] . ' VARCHAR(255)'; // Concatenate with column name from the array
+		$createTableQuery .= $columns[$x] . ' TEXT'; // Concatenate with column name from the array
 		$insertDataQueryHeader .= $columns[$x]; // Add to data insertion query too
 		if($x != count($columns) - 1) {
 			$createTableQuery .= ', '; // Add comma for next column
@@ -95,7 +146,7 @@ if(isset($_POST["import"])) {
 	// Use the premade data insertion query and add the actual values of the table into it to
 	// finalize the query
 	$highestRow = $data->getHighestRow();
-	for ($row = 3; $row <= $highestRow; $row++) {
+	for ($row = $dataRow; $row <= $highestRow; $row++) {
 		$insertDataQuery = $insertDataQueryHeader;
 		$containsData = false; // If data from excel is all empty, ignore it and don't add it
 		$values = "";
@@ -126,6 +177,14 @@ if(isset($_POST["import"])) {
 		}
 	}
 	
+	// Get latest updated and put it in a separate table
+	$latestDataQuery = "CREATE TABLE data AS SELECT * FROM history WHERE fecha = (SELECT MAX(fecha) FROM history)";
+	if ($conn->query($latestDataQuery) === TRUE)
+		echo "Latest data parsed from history successfully";
+	else
+		echo "Error creating table: " . $conn->error;
+	echo "<br/>";
+
 	// Close connection
 	$conn->close();
 }
