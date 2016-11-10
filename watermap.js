@@ -1,13 +1,5 @@
 var locations = []
 
-/*var locations = [
-  ['San Antonio Del Mar', 32.430879, -117.099590],
-  ['El Faro',             31.778962, -116.616930],
-  ['Playa El Vigia',      32.502543, -117.123172],
-  ['Parque Mexico',       32.527274, -117.123886],
-  //['Maroubra Beach', -33.950198, 151.259302, 1]
-]; */
-
 
 function reqListener () {
       console.log(this.responseText);
@@ -15,8 +7,16 @@ function reqListener () {
 
 var oReq = new XMLHttpRequest(); //New request object
 
+var js = document.createElement("script");
+
+js.type = "text/javascript";
+js.src = "canvasjs.min.js";
+
+document.body.appendChild(js);
+
 // WHERE ALL THE JAVASCRIPT GETS PUT INTO
 oReq.onload = function() {
+
       //This is where you handle what to do with the response.
       //The actual data is found on this.responseText
       var foo = JSON.parse(oReq.responseText);
@@ -35,6 +35,7 @@ oReq.onload = function() {
 
       var marker, i;
 
+
      // go through all the beach locations
      for (i = 0; i < locations.length; i++) {
 
@@ -42,6 +43,8 @@ oReq.onload = function() {
         position: new google.maps.LatLng(locations[i][1], locations[i][2]),
         map: map
         });
+
+
 
         //when you hover over a marker
         google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
@@ -61,6 +64,7 @@ oReq.onload = function() {
         // when you click on a marker
         google.maps.event.addListener(marker, 'click', (function(marker, i) {
            return function() {
+
              infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
              '<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" > Enterococos </a></li>' +
              '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
