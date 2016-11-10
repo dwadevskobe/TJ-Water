@@ -17,8 +17,8 @@ document.body.appendChild(js);
 // WHERE ALL THE JAVASCRIPT GETS PUT INTO
 oReq.onload = function() {
 
-      //This is where you handle what to do with the response.
-      //The actual data is found on this.responseText
+      // This is where you handle what to do with the response.
+      // The actual data is found on this.responseText
       var foo = JSON.parse(oReq.responseText);
       for ( var $i = 0; $i < foo.length; $i++){
          locations.push(foo[$i]);
@@ -61,23 +61,38 @@ oReq.onload = function() {
           }
         })(marker, i));
 
+			
         // when you click on a marker
         google.maps.event.addListener(marker, 'click', (function(marker, i) {
+			
            return function() {
-
              infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
              '<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" > Enterococos </a></li>' +
              '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
              '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
              '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
 
-
+			 ' <div id="chartContainer" style="height: 40%; width: 80%;"></div>' +
              ' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '</p></div>' +
              ' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content </p></div>' +
              ' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content </p></div>' +
              ' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content </p></div>' );
              infowindow2.open(map, marker);
              infowindow1.close(map, marker);
+			 
+			var chart = new CanvasJS.Chart("chartContainer", {
+				title: {
+					text: "Basic Column Chart"
+				},
+				data: [{
+					type: "column",
+					dataPoints: [
+						{ y: 45, label: "Cookie Monster" },
+						{ y: 31, label: "Mango" }
+					]
+				}]
+			});	 
+			chart.render();  
            }
       })(marker, i));
    }

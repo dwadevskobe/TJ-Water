@@ -21,7 +21,7 @@ include 'PHPExcel/IOFactory.php';
 	} 
 
     // gets all column names 
-    $columnNames = "SHOW COLUMNS FROM excel";
+    $columnNames = "SHOW COLUMNS FROM data";
     $columns = $conn -> query($columnNames);
 
     if(!$columnNames)
@@ -37,7 +37,7 @@ include 'PHPExcel/IOFactory.php';
 
 
     // just selection location coordinates ATM
-	$sql = "SELECT * FROM excel WHERE $colNames[0] = (SELECT MAX($colNames[0]) FROM excel)";
+	$sql = "SELECT * FROM data";
 
 	$result = $conn->query($sql);
 
