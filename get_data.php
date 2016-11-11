@@ -61,7 +61,12 @@ include 'PHPExcel/IOFactory.php';
              array_push($words, $row[$colNames[1]]);  // push the beach name into the array  (index 0 in words)
        	     $word = explode(' ', $row[$colNames[2]]);  // contains a array of 2 variables N/S coordinate and E/W coordinate ( index 1 and 2 in words)
              $words = array_merge($words,$word);
-             array_push($words, $row[$colNames[3]]);  // (index 3 in words)
+
+
+             // Push the rest of columns in words starting from index 3
+             for ($i = 3; $i < sizeof($colNames); $i++){
+                array_push($words, $row[$colNames[$i]]); 
+             }
 
        	     // retrieve last character of words[0]  which will be N or S
        	     for( $i = 0; $i < strlen($words[1]); $i++ ) {
