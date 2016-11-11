@@ -56,10 +56,10 @@ oReq.onload = function() {
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
-					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '</p></div>' +
-					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p><div id="chart_div"></div> </p></div>' +
-					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content </p></div>' +
-					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content </p></div>' );
+					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '<div class="chart_div"></div></p></div>' +
+					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content <div class="chart_div"></div></p></div>' +
+					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content <div class="chart_div"></div></p></div>' +
+					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content <div class="chart_div"></div></p></div>');
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
 			       
@@ -89,8 +89,13 @@ oReq.onload = function() {
 		        var options = {'width':400, 'height':300};
 
 		        // Instantiate and draw our chart, passing in some options.
-		        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
-		        chart.draw(data, options);
+            var graphs;
+            graphs = document.getElementsByClassName("chart_div");
+            for (i = 0; i < graphs.length; i++){
+                var chart = new google.visualization.ColumnChart(graphs[i]);
+                chart.draw(data, options);
+            }
+
 		      }
 
 			}
