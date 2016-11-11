@@ -13,6 +13,7 @@ if(isset($_POST["import"])) {
 	$tabRow = 1;	// The row number where the tabs are written
 	$columnRow = 2;	// The row number where the column names are written
 	$dataRow = 3;   // The row number where the data starts
+	$measuresColumn = 4;	// The column number where the measures start
 
 	/* Checks */
 	// Size
@@ -43,9 +44,9 @@ if(isset($_POST["import"])) {
 	echo "<br/>";
 	
 	// Drop all relevant tables
-	$conn->query("DROP TABLE history");
-	$conn->query("DROP TABLE tabs");
 	$conn->query("DROP TABLE data");
+	$conn->query("DROP TABLE history");
+	$conn->query("DROP TABLE structure");
 	
 	/* Parse excel */
 	$excelFile = PHPExcel_IOFactory::load($_FILES["file"]["tmp_name"]);
@@ -54,10 +55,20 @@ if(isset($_POST["import"])) {
 	// Get column names	into an array
 	$highestColumm = $data->getHighestColumn();
 	$highestColumm++;
-    $columns = array();     
+    $columns = array();
+	$columnUnits = array();
 	for ($column = 'A'; $column != $highestColumm; $column++) {
 		$i = $data->getCell($column . $columnRow)->getValue();
 		if(!empty($i)) {
+			// Get column units
+			$unit = "NULL";
+			if(($unit_pos = strpos($i, '(')) !== FALSE) {
+				$unit = substr($i, $unit_pos + 1);
+				$unit = substr($unit, 0, -1);		
+				$i = substr($i, 0, $unit_pos - 1);
+			}
+			$columnUnits[] = $unit;
+			
 			// Format to compatible naming for MySQL
 			$i = trim($i);
 			$i = str_replace( array( '(', ')', '\'', '/', '.', ':', '%', '*', '&', '^', '%', '#', '@' ), '', $i);
@@ -74,52 +85,52 @@ if(isset($_POST["import"])) {
 		}
     }
 	
-	// Get tabs data
-	$createTabsQuery = "CREATE TABLE tabs (names TEXT,";
-	$addValuesToTabsQuery = "INSERT INTO tabs (names,";
-	$tabsColumnNames = "";
-    $columnIndexes = array();  
-	$index = 0;	$count = 1;	$startingIndex = -1;
+	// Get structure data
+	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT)";	
+	if ($conn->query($createStructureQuery) === TRUE)
+		echo "Table structure created successfully";
+	else
+		echo "Error creating table: " . $conn->error;
+	echo "<br/>";
+	
+	$addValuesToStructureQuery = "INSERT INTO structure (id, name, ind, tab, units) VALUES (";
+	
+	$index = 0;
+	$previousTab = "";
 	for ($column = 'A'; $column != $highestColumm; $column++) {
-		$i = $data->getCell($column . $tabRow)->getValue(); // Get the cell
-		if(!empty($i)) {
-			if($startingIndex == -1)
-				$startingIndex = $index;
-			$tabsColumnNames .= $i . ','; // For the first column
-			// Append the table names, which are numbers starting from 1
-			$createTabsQuery .= 'c' . $count . ' TEXT,';
-			$addValuesToTabsQuery .= 'c' . $count . ',';
-			// Get the column index
-			$columnIndexes[] = "'" . ($index - $startingIndex) . "'";
-			$count++;
-		}
+		// Only start parsing from the measures
+		if($index >= $measuresColumn - 1) {
+			// Get cells
+			$columnCell = $data->getCell($column . $columnRow)->getValue();
+			if(($unit_pos = strpos($columnCell, '(')) !== FALSE)	
+				$columnCell = substr($columnCell, 0, $unit_pos - 1);
+			
+			$tabCell = $data->getCell($column . $tabRow)->getValue();
+			
+			// Get tab
+			if(empty($tabCell))
+				$tabCell = $previousTab;
+			else
+				$previousTab = $tabCell;
+			
+			// Append
+			$addValuesToStructureQueryCopy = $addValuesToStructureQuery;
+			$addValuesToStructureQueryCopy .= '\'' . $columns[$index] . '\','; // id
+			$addValuesToStructureQueryCopy .= '\'' . $columnCell . '\','; // column name
+			$addValuesToStructureQueryCopy .= '\'' . ($index - $measuresColumn + 1) . '\','; // index
+			$addValuesToStructureQueryCopy .= '\'' . $tabCell . '\','; // tab
+			$addValuesToStructureQueryCopy .= '\'' . $columnUnits[$index] . '\')'; // units	
+			
+			echo $addValuesToStructureQueryCopy;
+			echo "<br/>";
+			if ($conn->query($addValuesToStructureQueryCopy) === TRUE)
+				echo "Added value to structure table successfully";
+			else
+				echo "Error adding value to structure table: " . $conn->error;
+			echo "<br/>";
+		}		
 		$index++;
-	}
-	$createTabsQuery = substr($createTabsQuery, 0, -1) . ')'; // Remove last lingering comma
-	echo $createTabsQuery;
-	echo "<br/>";
-	// Create table
-	if ($conn->query($createTabsQuery) === TRUE)
-		echo "Table excel created successfully";
-	else
-		echo "Error creating table: " . $conn->error;
-	echo "<br/>";
-	// Add values
-	$addValuesToTabsQuery = substr($addValuesToTabsQuery, 0, -1) . ') VALUES (\'' . substr($tabsColumnNames, 0, -1) .'\','; // Continue making the query
-	for ($x = 0; $x < count($columnIndexes); $x++) {
-		$addValuesToTabsQuery .= $columnIndexes[$x]; // Add to query
-		if($x != count($columnIndexes) - 1)
-			$addValuesToTabsQuery .= ','; // Add comma for next column
-		else
-			$addValuesToTabsQuery .= ')'; // Add ending parenthesis		
-	}
-	echo $addValuesToTabsQuery;
-	echo "<br/>";
-	if ($conn->query($addValuesToTabsQuery) === TRUE)
-		echo "Inserted tabs successfully";
-	else
-		echo "Error creating table: " . $conn->error;
-	echo "<br/>";
+	}	
 		
 	// Create table	and pre-make data insertion query
 	$createTableQuery = "CREATE TABLE history ("; // Create table query beginning
