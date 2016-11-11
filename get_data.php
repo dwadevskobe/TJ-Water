@@ -36,19 +36,41 @@ include 'PHPExcel/IOFactory.php';
     }   
 
 
-    // just selection location coordinates ATM
-	$sql = "SELECT * FROM data";
+    $locations = array();  // the whole array to be passed into watermap
 
-	$result = $conn->query($sql);
+
+    $tab = "SELECT * from structure";
+    $tabs = $conn -> query($tab);
+
+    if (!$tabs){
+      echo 'Something wrong with query: ' . mysqli_error($conn);
+    }
+
+    $name = array();
+    $tab = array();
+    $units = array();
+
+    while($row = mysqli_fetch_array($tabs)){
+       array_push($name,$row['name']);
+       array_push($tab,$row['tab']);
+       array_push($units,$row['units']);
+    }   
+
+    array_push($locations,$name);   // first array in array locations is colNames
+    array_push($locations,$tab);   // second array in array locations is colNames
+    array_push($locations,$units);   // third array in array locations is colNames
+
+
+    $sql = "SELECT * FROM data";
+
+    $result = $conn->query($sql);
 
     // debugging purposes
-	if(!$result)
+    if(!$result)
     {
         echo 'Something wrong with query: ' . mysqli_error($conn);
     }
-
-    $locations = array();
-
+  
 
     // This whole result chunk is only for location coordinates and beach name ATM 
 	if ($result->num_rows > 0) {

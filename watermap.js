@@ -15,6 +15,10 @@ oReq.onload = function() {
         locations.push(foo[$i]);
     }
 
+    var colNames = foo[0];
+    var tabNum = foo[1];
+    var units = foo[2];
+
     var map = new google.maps.Map(document.getElementById('map'), {
         zoom: 11,
         center: new google.maps.LatLng(32.352543, -117.123172),
@@ -27,7 +31,7 @@ oReq.onload = function() {
     var marker, i;
 
     // Go through all the beach locations
-    for (i = 0; i < locations.length; i++) {
+    for (i = 3; i < locations.length; i++) {
         marker = new google.maps.Marker({
 			position: new google.maps.LatLng(locations[i][1], locations[i][2]),
 			map: map
@@ -56,7 +60,7 @@ oReq.onload = function() {
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
-					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '<div class="chart_div"></div></p></div>' +
+					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>' + colNames[0] +'</h3><p>' + locations[i][3] + '<div class="chart_div"></div></p></div>' +
 					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content <div class="chart_div"></div></p></div>' +
 					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content <div class="chart_div"></div></p></div>' +
 					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content <div class="chart_div"></div></p></div>');
