@@ -57,12 +57,42 @@ oReq.onload = function() {
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
 					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '</p></div>' +
-					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content </p></div>' +
+					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p><div id="chart_div"></div> </p></div>' +
 					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content </p></div>' +
 					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content </p></div>' );
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
-			 
+			       
+			    google.charts.load('current', {'packages':['corechart']});
+
+		      // Set a callback to run when the Google Visualization API is loaded.
+		      google.charts.setOnLoadCallback(drawChart);
+
+		      // Callback that creates and populates a data table,
+		      // instantiates the pie chart, passes in the data and
+		      // draws it.
+		      function drawChart() {
+
+		        // Create the data table.
+		        var data = new google.visualization.DataTable();
+		        data.addColumn('string', 'Topping');
+		        data.addColumn('number', 'Slices');
+		        data.addRows([
+		          ['Mushrooms', 3],
+		          ['Onions', 1],
+		          ['Olives', 1],
+		          ['Zucchini', 1],
+		          ['Pepperoni', 2]
+		        ]);
+
+		        // Set chart options
+		        var options = {'width':400, 'height':300};
+
+		        // Instantiate and draw our chart, passing in some options.
+		        var chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+		        chart.draw(data, options);
+		      }
+
 			}
 		})(marker, i));
 	}
