@@ -56,8 +56,6 @@ oReq.onload = function() {
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
 					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
-					 
-					' <div id="chartContainer" style="height: 40%; width: 80%;"></div>' +
 					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>Enterococos</h3><p>' + locations[i][3] + '</p></div>' +
 					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content </p></div>' +
 					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content </p></div>' +
@@ -65,19 +63,6 @@ oReq.onload = function() {
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
 			 
-				var chart = new CanvasJS.Chart("chartContainer", {
-					title: {
-						text: "Basic Column Chart"
-					},
-					data: [{
-						type: "column",
-						dataPoints: [
-							{ y: 45, label: "Cookie Monster" },
-							{ y: 31, label: "Mango" }
-						]
-					}]
-				});
-				chart.render();
 			}
 		})(marker, i));
 	}
