@@ -56,12 +56,12 @@ oReq.onload = function() {
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
 				infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
-					'<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" > Enterococos </a></li>' +
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')"> Tab2</a></li>' +  
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')"> Tab3</a></li>' + 
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')"> Tab4</a></li> </ul>' +
+					'<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%"> Enterococos </a></li>' +
+					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%"> Bacteria</a></li>' +  
+					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')" style = "font-size:95%"> Conductividad</a></li>' + 
+					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')" style = "font-size:95%"> Oxígeno</a></li> </ul>' +
 					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>' + colNames[0] +'</h3><p>' + locations[i][3] + '<div class="chart_div"></div></p></div>' +
-					' <div id="Tab2" class="tabcontent"><h3>Tab2</h3><p> Tab2 Content <div class="chart_div"></div></p></div>' +
+					' <div id="Tab2" class="tabcontent"><h3>Bacteria</h3><p> Bacteria <div class="chart_div"></div></p></div>' +
 					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content <div class="chart_div"></div></p></div>' +
 					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content <div class="chart_div"></div></p></div>');
 				infowindow2.open(map, marker);
@@ -80,17 +80,17 @@ oReq.onload = function() {
 		        // Create the data table.
 		        var data = new google.visualization.DataTable();
 		        data.addColumn('string', 'Topping');
-		        data.addColumn('number', 'Slices');
+		        data.addColumn('number', 'Bacteria');
 		        data.addRows([
-		          ['Mushrooms', 3],
-		          ['Onions', 1],
-		          ['Olives', 1],
-		          ['Zucchini', 1],
-		          ['Pepperoni', 2]
+		          ['E coli', 3],
+
 		        ]);
 
 		        // Set chart options
-		        var options = {'width':400, 'height':300};
+		        var options = {'width':300, 'height':200 ,
+                           'vAxis': { title: 'mg'},
+                           'bar': {groupWidth: "15%"}
+                          };
 
 		        // Instantiate and draw our chart, passing in some options.
             var graphs;
