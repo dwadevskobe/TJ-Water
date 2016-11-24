@@ -1,7 +1,7 @@
 <?php
 set_include_path(get_include_path() . PATH_SEPARATOR . 'helpers/');
 include 'PHPExcel/IOFactory.php';
-
+header("Content-Type: text/html;charset=utf-8");
 if(isset($_POST["import"])) {
 	/* Set up variables */
 	// Database
@@ -10,9 +10,10 @@ if(isset($_POST["import"])) {
 	$password = "";
 	$db = 'map';
 	// Others
-	$tabRow = 1;	// The row number where the tabs are written
-	$columnRow = 2;	// The row number where the column names are written
-	$dataRow = 3;   // The row number where the data starts
+	$tabRow = 1;			// The row number where the tabs are written
+	$thresholdRow = 2;		// The row number where the threshold are written
+	$columnRow = 3;			// The row number where the column names are written
+	$dataRow = 4;   		// The row number where the data starts
 	$measuresColumn = 4;	// The column number where the measures start
 
 	/* Checks */
@@ -35,6 +36,7 @@ if(isset($_POST["import"])) {
 	// Create connection
 	$conn = new mysqli($host, $username, $password, $db);
 	mysqli_set_charset($conn, "utf8");
+	$conn->query("SET NAMES 'utf8'");
 	
 	// Check connection
 	if ($conn->connect_error) {
@@ -86,7 +88,8 @@ if(isset($_POST["import"])) {
     }
 	
 	// Get structure data
-	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT)";	
+	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT)";
+	//$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT) CHARACTER SET utf8";
 	if ($conn->query($createStructureQuery) === TRUE)
 		echo "Table structure created successfully";
 	else
@@ -121,8 +124,6 @@ if(isset($_POST["import"])) {
 			$addValuesToStructureQueryCopy .= '\'' . $tabCell . '\','; // tab
 			$addValuesToStructureQueryCopy .= '\'' . $columnUnits[$index] . '\')'; // units	
 			
-			echo $addValuesToStructureQueryCopy;
-			echo "<br/>";
 			if ($conn->query($addValuesToStructureQueryCopy) === TRUE)
 				echo "Added value to structure table successfully";
 			else
@@ -147,6 +148,7 @@ if(isset($_POST["import"])) {
 			$insertDataQueryHeader .= ')';
 		}
 	}
+	$createTableQuery .= "  CHARACTER SET utf8";
 	if ($conn->query($createTableQuery) === TRUE)
 		echo "Table excel created successfully";
 	else
@@ -172,15 +174,16 @@ if(isset($_POST["import"])) {
 					$value = "'" . mysqli_real_escape_string($conn, $data->getCell($column . $row)->getCalculatedValue()) . "'";
 				}
 				$values .= $value . ',';
+		
 			}
-		}		
+		}
 		
 		$values = substr($values, 0, -1); // Remove last lingering comma
 		$insertDataQuery .= ' VALUES (' . $values . ');'; // Add the values of the row into the query to finalize
-		
+	
 		if($containsData == true) {
 			if ($conn->query($insertDataQuery) === TRUE) {
-				echo "Added a record successfully";
+				echo "Added a record to excel table successfully";
 			} else {
 				echo "Error: " . $insertDataQuery . "<br>" . $conn->error;
 			}
@@ -310,7 +313,7 @@ function remove_accents($string) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 		<title>Import CSV/Excel file</title>
 	</head>
 	<body>
