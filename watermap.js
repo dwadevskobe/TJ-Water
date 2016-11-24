@@ -15,9 +15,33 @@ oReq.onload = function() {
         locations.push(foo[$i]);
     }
 
+    // all the sub-column names
     var colNames = foo[0];
+
+    // all the main column names
     var tabNum = foo[1];
+
+    // corresponding units to corresponding colNames EX: colNames[0] -> units[0]
     var units = foo[2];
+
+    // to get an array of unique tabs
+    uniqueTabs = tabNum.filter(function(item, pos) {
+       return tabNum.indexOf(item) == pos;
+    })
+
+    // mainCategories will hold KEY: Main Tab  and VALUE: Array of Subtabs
+    mainCategories = {};
+    tempArray = [];
+    var uniqueCount = 0;
+    for ( var $i = 0; $i <= tabNum.length; $i++){
+        if ( tabNum[$i] != uniqueTabs[uniqueCount] ){
+            mainCategories[uniqueTabs[uniqueCount]] = tempArray;
+            uniqueCount++;
+            tempArray = [];
+        }
+        tempArray.push(colNames[$i]);
+    }
+
 
     var map = new google.maps.Map(document.getElementById('map'), {
         zoom: 11,
@@ -57,19 +81,38 @@ oReq.onload = function() {
 			return function() {
 				infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
 					'<ul class="tab" style = "list-style-type: none">' + 
-                       '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%"> Enterococos </a></li>' +
-					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%"> Bacteria</a></li>' +
+                       '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%">'+ uniqueTabs[0] + '</a></li>' +
+					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%">' + uniqueTabs[1] + '</a></li>' +
                     '</ul>' +  
-					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>' + colNames[0] +'</h3><p>' + locations[i][3] + '</p></div>' +
+					' <div id="Tab1" class="tabcontent" style = "display:block">' +
+                        '<div id="content">' + 
+                           '<div id="tab-container"><ul>' +
+                              '<li><a href="javascript:void(0)" class="sublinks active" onclick="openSub(event, \'Tab1-1\')">' + (mainCategories[uniqueTabs[0]])[0]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'Tab1-2\')">' + (mainCategories[uniqueTabs[0]])[1]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'Tab1-3\')">' + (mainCategories[uniqueTabs[0]])[2]  +'</a></li>' +
+                           '</ul></div>' + 
+                           '<div id="main-container">' +
+                              '<div id="Tab1-1" class ="subcontent" style = "display:block"> <h3> TEST1 </h3> </div>'+ 
+                              '<div id="Tab1-2" class ="subcontent" style = "display:none"> <h3> TEST2 </h3> </div>'+ 
+                              '<div id="Tab1-3" class ="subcontent" style = "display:none"> <h3> TEST3 </h3> </div>'+ 
+                           '</div>' + 
+                        '</div>' + 
+                    '</div>' + 
 					' <div id="Tab2" class="tabcontent">' + 
                        '<div id="content">' + 
                            '<div id="tab-container"><ul>' +
-                              '<li><a href="javascript:void(0)" class="sublinks active" onclick="openSub(event, \'Tab2-1\')">Introduction</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'Tab2-2\')">Html</a></li></ul>' +
-                           '</div>' + 
+                              '<li><a href="javascript:void(0)" class="sublinks2 active" onclick="openSub2(event, \'Tab2-1\')">' + (mainCategories[uniqueTabs[1]])[0]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-2\')">' + (mainCategories[uniqueTabs[1]])[1]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-3\')">' + (mainCategories[uniqueTabs[1]])[2]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-4\')">' + (mainCategories[uniqueTabs[1]])[3]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-5\')">' + (mainCategories[uniqueTabs[1]])[4]  +'</a></li>' +
+                           '</ul></div>' + 
                            '<div id="main-container">' +
-                              '<div id="Tab2-1" class ="subcontent" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
-                              '<div id="Tab2-2" class ="subcontent" style = "display:none"> <h3> TEST </h3> </div>'+ 
+                              '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
+                              '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <h3> TEST2 </h3> </div>'+ 
+                              '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <h3> TEST3 </h3> </div>'+ 
+                              '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <h3> TEST4 </h3> </div>'+ 
+                              '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <h3> TEST5 </h3> </div>'+ 
                            '</div>' + 
                         '</div>' + 
                     '</div>' 
@@ -91,20 +134,22 @@ oReq.onload = function() {
 		        var data = new google.visualization.DataTable();
 		        data.addColumn('string', 'Category');
 		        data.addColumn('number', 'Measurement');
-		        data.addRows([
-		          [colNames[0], 3],
-		        ]);
-
-		        // Set chart options
-		        var options = {'width':300, 'height':200 ,
-                           'vAxis': { title: 'mg'},
+                // Set chart options
+                var options = {'width':300, 'height':200 ,
                            'bar': {groupWidth: "15%"}
                           };
 
+                // For tab 2-1, Temperature
+                data21 = data;
+                opt21 = options;
+                data21.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[0] + ' (' + units[3] + ')', Number(locations[i][6]) ]
+                ]);
+                opt21.vAxis = { title: units[3] };
 		        // Instantiate and draw our chart, passing in some options.
-            var Tab21 = document.getElementById("Tab2-1");
-            var chart = new google.visualization.ColumnChart(Tab21);
-            chart.draw(data, options);
+                var Tab21 = document.getElementById("Tab2-1");
+                var chart21 = new google.visualization.ColumnChart(Tab21);
+                chart21.draw(data21, opt21);
             
 
 		      }
@@ -144,7 +189,7 @@ function openTab(evt, cityName) {
     evt.currentTarget.className += " active";
 }
 
-// For the subtabs in the info window
+// For the subtab1 in the info window
 function openSub(evt, cityName) {
 
     // Declare all variables
@@ -167,3 +212,25 @@ function openSub(evt, cityName) {
     evt.currentTarget.className += " active";
 }
 
+// For the subtab2 in the info window
+function openSub2(evt, cityName) {
+
+    // Declare all variables
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("subcontent2");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("sublinks2");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the link that opened the tab
+    document.getElementById(cityName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
