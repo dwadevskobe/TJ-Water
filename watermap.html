@@ -8,12 +8,14 @@
   <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
-  <div id="map" style="width: 1000px; height: 700px;"></div>
+  <div id="map" style="width: 1200px; height: 750px;"></div>
 
     <script src="watermap.js"></script>
 
 </body>
 </html>
+
+
 
 <style>
 /* Style the list */
@@ -49,8 +51,61 @@ ul.tab li a:focus, .active {background-color: #ccc;}
 /* Style the tab content */
 .tabcontent {
     display: none;
-    padding: 6px 12px;
+    padding: 6px 
     border: 1px solid #ccc;
     border-top: none;
+}
+
+#content
+{
+  padding-top: 10px;
+  overflow: auto;
+}
+#tab-container
+{
+   float: left;
+   margin-left: -40px;
+}
+#tab-container ul
+{
+   list-style: none;
+
+}
+#tab-container ul li
+{
+   border-top: 1px solid #ccc;
+   border-right: 1px solid #ccc;
+   border-bottom: 1px solid #ccc;
+   border-left: 1px solid #ccc;
+   background-color: #f1f1f1;
+   text-align: center;
+}
+
+#tab-container ul li a
+{
+   text-decoration: none;
+   display: block;
+   padding: 6px 12px;
+   color: black;
+   transition: 0.3s;
+}
+
+#tab-container ul li a:hover
+{
+   background-color: #ddd;
+}
+
+#tab-container .active
+{
+   background-color: #ccc;
+}
+
+#main-container
+{
+   float: right;
+   min-height: 50px;
+   margin: auto;
+   padding: 20px;
+   background-color: #fff;
 }
 </style>

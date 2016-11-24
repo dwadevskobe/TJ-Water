@@ -56,14 +56,24 @@ oReq.onload = function() {
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
 				infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
-					'<ul class="tab" style = "list-style-type: none"> <li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%"> Enterococos </a></li>' +
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%"> Bacteria</a></li>' +  
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab3\')" style = "font-size:95%"> Conductividad</a></li>' + 
-					'<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab4\')" style = "font-size:95%"> Oxígeno</a></li> </ul>' +
-					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>' + colNames[0] +'</h3><p>' + locations[i][3] + '<div class="chart_div"></div></p></div>' +
-					' <div id="Tab2" class="tabcontent"><h3>Bacteria</h3><p> Bacteria <div class="chart_div"></div></p></div>' +
-					' <div id="Tab3" class="tabcontent"><h3>Tab3</h3><p> Tab3 Content <div class="chart_div"></div></p></div>' +
-					' <div id="Tab4" class="tabcontent"><h3>Tab4</h3><p> Tab4 Content <div class="chart_div"></div></p></div>');
+					'<ul class="tab" style = "list-style-type: none">' + 
+                       '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%"> Enterococos </a></li>' +
+					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%"> Bacteria</a></li>' +
+                    '</ul>' +  
+					' <div id="Tab1" class="tabcontent" style = "display:block"><h3>' + colNames[0] +'</h3><p>' + locations[i][3] + '</p></div>' +
+					' <div id="Tab2" class="tabcontent">' + 
+                       '<div id="content">' + 
+                           '<div id="tab-container"><ul>' +
+                              '<li><a href="javascript:void(0)" class="sublinks active" onclick="openSub(event, \'Tab2-1\')">Introduction</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'Tab2-2\')">Html</a></li></ul>' +
+                           '</div>' + 
+                           '<div id="main-container">' +
+                              '<div id="Tab2-1" class ="subcontent" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
+                              '<div id="Tab2-2" class ="subcontent" style = "display:none"> <h3> TEST </h3> </div>'+ 
+                           '</div>' + 
+                        '</div>' + 
+                    '</div>' 
+					);
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
 			       
@@ -79,11 +89,10 @@ oReq.onload = function() {
 
 		        // Create the data table.
 		        var data = new google.visualization.DataTable();
-		        data.addColumn('string', 'Topping');
-		        data.addColumn('number', 'Bacteria');
+		        data.addColumn('string', 'Category');
+		        data.addColumn('number', 'Measurement');
 		        data.addRows([
-		          ['E coli', 3],
-
+		          [colNames[0], 3],
 		        ]);
 
 		        // Set chart options
@@ -93,12 +102,10 @@ oReq.onload = function() {
                           };
 
 		        // Instantiate and draw our chart, passing in some options.
-            var graphs;
-            graphs = document.getElementsByClassName("chart_div");
-            for (i = 0; i < graphs.length; i++){
-                var chart = new google.visualization.ColumnChart(graphs[i]);
-                chart.draw(data, options);
-            }
+            var Tab21 = document.getElementById("Tab2-1");
+            var chart = new google.visualization.ColumnChart(Tab21);
+            chart.draw(data, options);
+            
 
 		      }
 
@@ -136,3 +143,27 @@ function openTab(evt, cityName) {
     document.getElementById(cityName).style.display = "block";
     evt.currentTarget.className += " active";
 }
+
+// For the subtabs in the info window
+function openSub(evt, cityName) {
+
+    // Declare all variables
+    var i, tabcontent, tablinks;
+
+    // Get all elements with class="tabcontent" and hide them
+    tabcontent = document.getElementsByClassName("subcontent");
+    for (i = 0; i < tabcontent.length; i++) {
+        tabcontent[i].style.display = "none";
+    }
+
+    // Get all elements with class="tablinks" and remove the class "active"
+    tablinks = document.getElementsByClassName("sublinks");
+    for (i = 0; i < tablinks.length; i++) {
+        tablinks[i].className = tablinks[i].className.replace(" active", "");
+    }
+
+    // Show the current tab, and add an "active" class to the link that opened the tab
+    document.getElementById(cityName).style.display = "block";
+    evt.currentTarget.className += " active";
+}
+
