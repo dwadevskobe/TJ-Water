@@ -76,7 +76,7 @@ oReq.onload = function() {
 			}
         })(marker, i));
 			
-        // When you click on a marker
+        // When you click on a marker, It shows all the tabs
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
 				infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
@@ -109,7 +109,7 @@ oReq.onload = function() {
                            '</ul></div>' + 
                            '<div id="main-container">' +
                               '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
-                              '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <h3> TEST2 </h3> </div>'+ 
+                              '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <div id = "Tab2-2"></div>  </div>'+ 
                               '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <h3> TEST3 </h3> </div>'+ 
                               '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <h3> TEST4 </h3> </div>'+ 
                               '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <h3> TEST5 </h3> </div>'+ 
@@ -146,11 +146,20 @@ oReq.onload = function() {
                     [ (mainCategories[uniqueTabs[1]])[0] + ' (' + units[3] + ')', Number(locations[i][6]) ]
                 ]);
                 opt21.vAxis = { title: units[3] };
-		        // Instantiate and draw our chart, passing in some options.
                 var Tab21 = document.getElementById("Tab2-1");
                 var chart21 = new google.visualization.ColumnChart(Tab21);
                 chart21.draw(data21, opt21);
             
+                // For tab 2-2, Potencial 
+                data22 = data;
+                opt22 = options;
+                data22.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[1] + ' (' + units[4] + ')', Number(locations[i][7]) ]
+                ]);
+                opt22.vAxis = { title: units[4] };
+                var Tab22 = document.getElementById("Tab2-2");
+                var chart22 = new google.visualization.ColumnChart(Tab22);
+                chart22.draw(data22, opt22);
 
 		      }
 
@@ -166,7 +175,7 @@ oReq.open("GET", "get_data.php", true);
 
 oReq.send();
 
-// For the tabs in the info window
+// For the main tabs in the info window
 function openTab(evt, cityName) {
 
     // Declare all variables
