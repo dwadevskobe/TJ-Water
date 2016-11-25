@@ -79,10 +79,16 @@ oReq.onload = function() {
         // When you click on a marker, It shows all the tabs
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
-				infowindow2.setContent(locations[i][0] + '<p style="color:green;"><b>SAFE</b></p>' +
-					'<ul class="tab" style = "list-style-type: none">' + 
-                       '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "font-size:95%">'+ uniqueTabs[0] + '</a></li>' +
-					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "font-size:95%">' + uniqueTabs[1] + '</a></li>' +
+				infowindow2.setContent( '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
+                    '<select style = "margin-top:15px">' + 
+                       '<option value = "pfea"> PFEA </option>' +
+                       '<option value = "cespt"> CESPT </option>' +
+                       '<option value = "cofepris"> COFEPRIS </option>' +
+                    '</select>' +
+
+					'<ul class="tab" style = "list-style-type:none; margin-top:15px">' + 
+                       '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "padding:8px">'+ uniqueTabs[0] + '</a></li>' +
+					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "padding:8px">' + uniqueTabs[1] + '</a></li>' +
                     '</ul>' +  
 					' <div id="Tab1" class="tabcontent" style = "display:block">' +
                         '<div id="content">' + 
@@ -92,9 +98,9 @@ oReq.onload = function() {
                               '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'Tab1-3\')">' + (mainCategories[uniqueTabs[0]])[2]  +'</a></li>' +
                            '</ul></div>' + 
                            '<div id="main-container">' +
-                              '<div id="Tab1-1" class ="subcontent" style = "display:block"> <h3> TEST1 </h3> </div>'+ 
-                              '<div id="Tab1-2" class ="subcontent" style = "display:none"> <h3> TEST2 </h3> </div>'+ 
-                              '<div id="Tab1-3" class ="subcontent" style = "display:none"> <h3> TEST3 </h3> </div>'+ 
+                              '<div id="Tab1-1" class ="subcontent" style = "display:block"> <div id = "Tab1-1"></div> </div>'+ 
+                              '<div id="Tab1-2" class ="subcontent" style = "display:none"> <div id = "Tab1-2"></div> </div>'+ 
+                              '<div id="Tab1-3" class ="subcontent" style = "display:none"> <div id = "Tab1-3"></div></div>'+ 
                            '</div>' + 
                         '</div>' + 
                     '</div>' + 
@@ -110,9 +116,9 @@ oReq.onload = function() {
                            '<div id="main-container">' +
                               '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
                               '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <div id = "Tab2-2"></div>  </div>'+ 
-                              '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <h3> TEST3 </h3> </div>'+ 
-                              '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <h3> TEST4 </h3> </div>'+ 
-                              '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <h3> TEST5 </h3> </div>'+ 
+                              '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <div id = "Tab2-3"></div> </div>'+ 
+                              '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <div id = "Tab2-4"></div> </div>'+ 
+                              '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <div id = "Tab2-5"></div> </div>'+ 
                            '</div>' + 
                         '</div>' + 
                     '</div>' 
@@ -135,31 +141,84 @@ oReq.onload = function() {
 		        data.addColumn('string', 'Category');
 		        data.addColumn('number', 'Measurement');
                 // Set chart options
-                var options = {'width':300, 'height':200 ,
-                           'bar': {groupWidth: "15%"}
-                          };
+                var options = {'width':300, 'height':200 , 'legend': 'none',
+                           'bar': {groupWidth: "25%"},
+                           'tooltip': { textStyle: { fontName: 'verdana', fontSize: 12 } },
+                           'hAxis' : { textStyle : {fontSize: 15 } },
+                           'vAxis' : { textStyle : {fontSize: 15 }}
+                };
+
+                 // For tab 1-1, Enterococos
+                data11 = data.clone();
+                data11.addRows([
+                    [ (mainCategories[uniqueTabs[0]])[0] + ' (' + units[0] + ')', Number(locations[i][3]) ]
+                ]);
+                var Tab11 = document.getElementById("Tab1-1");
+                var chart11 = new google.visualization.ColumnChart(Tab11);
+                chart11.draw(data11, options);
+
+                 // For tab 1-2, Califormes Totales
+                data12 = data.clone();
+                data12.addRows([
+                    [ (mainCategories[uniqueTabs[0]])[1], Number(locations[i][4]) ]
+                ]);
+                var Tab12 = document.getElementById("Tab1-2");
+                var chart12 = new google.visualization.ColumnChart(Tab12);
+                chart12.draw(data12, options);
+
+                 // For tab 1-3, Califormes Fecales
+                data13 = data.clone();
+                data13.addRows([
+                    [ (mainCategories[uniqueTabs[0]])[2], Number(locations[i][5]) ]
+                ]);
+                var Tab13 = document.getElementById("Tab1-3");
+                var chart13 = new google.visualization.ColumnChart(Tab13);
+                chart13.draw(data13, options);
 
                 // For tab 2-1, Temperature
-                data21 = data;
-                opt21 = options;
+                data21 = data.clone();
                 data21.addRows([
                     [ (mainCategories[uniqueTabs[1]])[0] + ' (' + units[3] + ')', Number(locations[i][6]) ]
                 ]);
-                opt21.vAxis = { title: units[3] };
                 var Tab21 = document.getElementById("Tab2-1");
                 var chart21 = new google.visualization.ColumnChart(Tab21);
-                chart21.draw(data21, opt21);
+                chart21.draw(data21, options);
             
                 // For tab 2-2, Potencial 
-                data22 = data;
-                opt22 = options;
+                data22 = data.clone();
                 data22.addRows([
                     [ (mainCategories[uniqueTabs[1]])[1] + ' (' + units[4] + ')', Number(locations[i][7]) ]
                 ]);
-                opt22.vAxis = { title: units[4] };
                 var Tab22 = document.getElementById("Tab2-2");
                 var chart22 = new google.visualization.ColumnChart(Tab22);
-                chart22.draw(data22, opt22);
+                chart22.draw(data22, options);
+
+                // For tab 2-3, Conductividad
+                data23 = data.clone();
+                data23.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[2] + ' (' + units[5] + ')', Number(locations[i][8]) ]
+                ]);
+                var Tab23 = document.getElementById("Tab2-3");
+                var chart23 = new google.visualization.ColumnChart(Tab23);
+                chart23.draw(data23, options);
+
+                // For tab 2-4, Oxigeno
+                data24 = data.clone();
+                data24.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[3] + ' (' + units[6] + ')', Number(locations[i][9]) ]
+                ]);
+                var Tab24 = document.getElementById("Tab2-4");
+                var chart24 = new google.visualization.ColumnChart(Tab24);
+                chart24.draw(data24, options);
+
+                // For tab 2-5, Solidos
+                data25 = data.clone();
+                data25.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[4] + ' (' + units[7] + ')', Number(locations[i][10]) ]
+                ]);
+                var Tab25 = document.getElementById("Tab2-5");
+                var chart25 = new google.visualization.ColumnChart(Tab25);
+                chart25.draw(data25, options);
 
 		      }
 
