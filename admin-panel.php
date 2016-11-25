@@ -88,8 +88,7 @@ if(isset($_POST["import"])) {
     }
 	
 	// Get structure data
-	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT)";
-	//$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT) CHARACTER SET utf8";
+	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT) CHARACTER SET utf8";
 	if ($conn->query($createStructureQuery) === TRUE)
 		echo "Table structure created successfully";
 	else
