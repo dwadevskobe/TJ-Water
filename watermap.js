@@ -112,6 +112,9 @@ oReq.onload = function() {
                               '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-3\')">' + (mainCategories[uniqueTabs[1]])[2]  +'</a></li>' +
                               '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-4\')">' + (mainCategories[uniqueTabs[1]])[3]  +'</a></li>' +
                               '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-5\')">' + (mainCategories[uniqueTabs[1]])[4]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-6\')">' + (mainCategories[uniqueTabs[1]])[5]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-7\')">' + (mainCategories[uniqueTabs[1]])[6]  +'</a></li>' +
+                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-8\')">' + (mainCategories[uniqueTabs[1]])[7]  +'</a></li>' +
                            '</ul></div>' + 
                            '<div id="main-container">' +
                               '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
@@ -119,6 +122,9 @@ oReq.onload = function() {
                               '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <div id = "Tab2-3"></div> </div>'+ 
                               '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <div id = "Tab2-4"></div> </div>'+ 
                               '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <div id = "Tab2-5"></div> </div>'+ 
+                              '<div id="Tab2-6" class ="subcontent2" style = "display:none"> <div id = "Tab2-6"></div> </div>'+ 
+                              '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-7"></div> </div>'+ 
+                              '<div id="Tab2-8" class ="subcontent2" style = "display:none"> <div id = "Tab2-8"></div> </div>'+ 
                            '</div>' + 
                         '</div>' + 
                     '</div>' 
@@ -219,6 +225,33 @@ oReq.onload = function() {
                 var Tab25 = document.getElementById("Tab2-5");
                 var chart25 = new google.visualization.ColumnChart(Tab25);
                 chart25.draw(data25, options);
+
+                // For tab 2-6, Densidad
+                data26 = data.clone();
+                data26.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[5] + ' (' + units[8] + ')', Number(locations[i][11]) ]
+                ]);
+                var Tab26 = document.getElementById("Tab2-6");
+                var chart26 = new google.visualization.ColumnChart(Tab26);
+                chart26.draw(data26, options);
+
+                // For tab 2-7, Solidos
+                data27 = data.clone();
+                data27.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[6] + ' (' + units[9] + ')', Number(locations[i][12]) ]
+                ]);
+                var Tab27 = document.getElementById("Tab2-7");
+                var chart27 = new google.visualization.ColumnChart(Tab27);
+                chart27.draw(data27, options);
+
+                // For tab 2-8, Resistividad
+                data28 = data.clone();
+                data28.addRows([
+                    [ (mainCategories[uniqueTabs[1]])[7] + ' (' + units[10] + ')', Number(locations[i][13]) ]
+                ]);
+                var Tab28 = document.getElementById("Tab2-8");
+                var chart28 = new google.visualization.ColumnChart(Tab28);
+                chart28.draw(data28, options);
 
 		      }
 
