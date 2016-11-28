@@ -1,8 +1,8 @@
 <?php
-set_include_path(get_include_path() . PATH_SEPARATOR . 'helpers/');
+set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
 include 'PHPExcel/IOFactory.php';
 header("Content-Type: text/html;charset=utf-8");
-if(isset($_POST["import"])) {
+if(isset($_POST["import"])) {	
 	/* Set up variables */
 	// Database
 	$host = "localhost";
@@ -63,7 +63,7 @@ if(isset($_POST["import"])) {
 		$i = $data->getCell($column . $columnRow)->getValue();
 		if(!empty($i)) {
 			// Get column units
-			$unit = "NULL";
+			$unit = "";
 			if(($unit_pos = strpos($i, '(')) !== FALSE) {
 				$unit = substr($i, $unit_pos + 1);
 				$unit = substr($unit, 0, -1);		
@@ -88,25 +88,26 @@ if(isset($_POST["import"])) {
     }
 	
 	// Get structure data
-	$createStructureQuery = "CREATE TABLE structure (id TEXT,name TEXT,ind TEXT,tab TEXT,units TEXT) CHARACTER SET utf8";
+	$createStructureQuery = "CREATE TABLE structure (id TEXT, name TEXT, ind TEXT, tab TEXT, threshold TEXT, units TEXT) CHARACTER SET utf8";
 	if ($conn->query($createStructureQuery) === TRUE)
 		echo "Table structure created successfully";
 	else
 		echo "Error creating table: " . $conn->error;
 	echo "<br/>";
 	
-	$addValuesToStructureQuery = "INSERT INTO structure (id, name, ind, tab, units) VALUES (";
+	$addValuesToStructureQuery = "INSERT INTO structure (id, name, ind, tab, threshold, units) VALUES (";
 	
 	$index = 0;
 	$previousTab = "";
 	for ($column = 'A'; $column != $highestColumm; $column++) {
 		// Only start parsing from the measures
 		if($index >= $measuresColumn - 1) {
-			// Get cells
+			// Get column name cell
 			$columnCell = $data->getCell($column . $columnRow)->getValue();
+			// Get rid of the parenthesis if found
 			if(($unit_pos = strpos($columnCell, '(')) !== FALSE)	
 				$columnCell = substr($columnCell, 0, $unit_pos - 1);
-			
+			// Get tab cell
 			$tabCell = $data->getCell($column . $tabRow)->getValue();
 			
 			// Get tab
@@ -121,6 +122,7 @@ if(isset($_POST["import"])) {
 			$addValuesToStructureQueryCopy .= '\'' . $columnCell . '\','; // column name
 			$addValuesToStructureQueryCopy .= '\'' . ($index - $measuresColumn + 1) . '\','; // index
 			$addValuesToStructureQueryCopy .= '\'' . $tabCell . '\','; // tab
+			$addValuesToStructureQueryCopy .= '\'' . $data->getCell($column . $thresholdRow)->getValue() . '\','; // threshold			
 			$addValuesToStructureQueryCopy .= '\'' . $columnUnits[$index] . '\')'; // units	
 			
 			if ($conn->query($addValuesToStructureQueryCopy) === TRUE)
@@ -166,7 +168,7 @@ if(isset($_POST["import"])) {
 			// Check that column name is not empty (Avoid cell merging)
 			if(!empty($data->getCell($column . $columnRow)->getValue())) {
 				if(empty($data->getCell($column . $row)->getCalculatedValue()))				
-					$value = "null";
+					$value = "";
 				else{
 					$containsData = true;
 					// Format: 'some interesting data to be added'
@@ -317,7 +319,7 @@ function remove_accents($string) {
 	</head>
 	<body>
 		<form enctype="multipart/form-data" method="post">
-			<table border="1" width="40%" align="center">
+			<table border="1" width="30%" align="center">
 				<tr >
 				<td colspan="2" align="center"><strong>Import CSV/Excel file</strong></td>
 				</tr>
