@@ -79,18 +79,18 @@ oReq.onload = function() {
         // When you click on a marker, It shows all the tabs
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
-				infowindow2.setContent( '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
+			 var contentString = '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
                     '<select style = "margin-top:15px">' + 
                        '<option value = "pfea"> PFEA </option>' +
                        '<option value = "cespt"> CESPT </option>' +
                        '<option value = "cofepris"> COFEPRIS </option>' +
                     '</select>' +
-
-					'<ul class="tab" style = "list-style-type:none; margin-top:15px">' + 
+                    '<ul class="tab" style = "list-style-type:none; margin-top:15px">' + 
                        '<li><a href="javascript:void(0)" class="tablinks active" onclick="openTab(event, \'Tab1\')" style = "padding:8px">'+ uniqueTabs[0] + '</a></li>' +
-					   '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "padding:8px">' + uniqueTabs[1] + '</a></li>' +
+                       '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "padding:8px">' + uniqueTabs[1] + '</a></li>' +
                     '</ul>' +  
-					' <div id="Tab1" class="tabcontent" style = "display:block">' +
+
+                    ' <div id="Tab1" class="tabcontent" style = "display:block">' +
                         '<div id="content">' + 
                            '<div id="tab-container"><ul>' +
                               '<li><a href="javascript:void(0)" class="sublinks active" onclick="openSub(event, \'Tab1-1\')">' + (mainCategories[uniqueTabs[0]])[0]  +'</a></li>' +
@@ -104,18 +104,20 @@ oReq.onload = function() {
                            '</div>' + 
                         '</div>' + 
                     '</div>' + 
-					' <div id="Tab2" class="tabcontent">' + 
+                    ' <div id="Tab2" class="tabcontent">' + 
                        '<div id="content">' + 
-                           '<div id="tab-container"><ul>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2 active" onclick="openSub2(event, \'Tab2-1\')">' + (mainCategories[uniqueTabs[1]])[0]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-2\')">' + (mainCategories[uniqueTabs[1]])[1]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-3\')">' + (mainCategories[uniqueTabs[1]])[2]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-4\')">' + (mainCategories[uniqueTabs[1]])[3]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-5\')">' + (mainCategories[uniqueTabs[1]])[4]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-6\')">' + (mainCategories[uniqueTabs[1]])[5]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-7\')">' + (mainCategories[uniqueTabs[1]])[6]  +'</a></li>' +
-                              '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-8\')">' + (mainCategories[uniqueTabs[1]])[7]  +'</a></li>' +
-                           '</ul></div>' + 
+                           '<div id="tab-container"><ul>'
+                
+                contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2 active" onclick="openSub2(event, \'Tab2-1\')">' + (mainCategories[uniqueTabs[1]])[0]  +'</a></li>';
+
+                // for loop to loop through inner tabs
+                var j;
+                for(j = 1; j < (mainCategories[uniqueTabs[1]]).length; j++)
+                {
+                    contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-'+ j+1 + '\')">' + (mainCategories[uniqueTabs[1]])[j]  +'</a></li>';
+                }
+                contentString = contentString + 
+                     '</ul></div>' + 
                            '<div id="main-container">' +
                               '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
                               '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <div id = "Tab2-2"></div>  </div>'+ 
@@ -124,11 +126,11 @@ oReq.onload = function() {
                               '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <div id = "Tab2-5"></div> </div>'+ 
                               '<div id="Tab2-6" class ="subcontent2" style = "display:none"> <div id = "Tab2-6"></div> </div>'+ 
                               '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-7"></div> </div>'+ 
-                              '<div id="Tab2-8" class ="subcontent2" style = "display:none"> <div id = "Tab2-8"></div> </div>'+ 
                            '</div>' + 
                         '</div>' + 
-                    '</div>' 
-					);
+                    '</div>' ;
+				infowindow2.setContent(contentString);
+                    
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
 			       
