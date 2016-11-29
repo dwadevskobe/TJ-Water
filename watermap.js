@@ -89,6 +89,7 @@ oReq.onload = function() {
                        '<li><a href="javascript:void(0)" class="tablinks" onclick="openTab(event, \'Tab2\')" style = "padding:8px">' + uniqueTabs[1] + '</a></li>' +
                     '</ul>' +  
 
+                    // TAB 1 HARDCODED
                     ' <div id="Tab1" class="tabcontent" style = "display:block">' +
                         '<div id="content">' + 
                            '<div id="tab-container"><ul>' +
@@ -102,33 +103,40 @@ oReq.onload = function() {
                               '<div id="Tab1-3" class ="subcontent" style = "display:none"> <div id = "Tab1-3"></div></div>'+ 
                            '</div>' + 
                         '</div>' + 
-                    '</div>' + 
+                    '</div>';
+                
+                // TAB 2 CONTENT SOFTCODED
+                contentString = contentString + 
                     ' <div id="Tab2" class="tabcontent">' + 
                        '<div id="content">' + 
                            '<div id="tab-container"><ul>'
                 
+                // Make first inner tab active, then loop through the rest of the tabs
                 contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2 active" onclick="openSub2(event, \'Tab2-1\')">' + (mainCategories[uniqueTabs[1]])[0]  +'</a></li>';
-
-                // for loop to loop through inner tabs
-                var j;
-                for(j = 1; j < (mainCategories[uniqueTabs[1]]).length; j++)
+                for(var j = 1; j < (mainCategories[uniqueTabs[1]]).length; j++)
                 {
                     contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-'+ parseInt(j+1) + '\')">' + (mainCategories[uniqueTabs[1]])[j]  +'</a></li>';
                 }
+
+                // Main container
                 contentString = contentString + 
                      '</ul></div>' + 
-                           '<div id="main-container">' +
-                              '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'+ 
-                              '<div id="Tab2-2" class ="subcontent2" style = "display:none"> <div id = "Tab2-2"></div>  </div>'+ 
-                              '<div id="Tab2-3" class ="subcontent2" style = "display:none"> <div id = "Tab2-3"></div> </div>'+ 
-                              '<div id="Tab2-4" class ="subcontent2" style = "display:none"> <div id = "Tab2-4"></div> </div>'+ 
-                              '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <div id = "Tab2-5"></div> </div>'+ 
-                              '<div id="Tab2-6" class ="subcontent2" style = "display:none"> <div id = "Tab2-6"></div> </div>'+ 
-                              '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-7"></div> </div>'+ 
-                              '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-8"></div> </div>'+ 
+                           '<div id="main-container">';
+
+                // Make first content active, then loop through the rest of the contents
+                contentString = contentString + '<div id="Tab2-1" class ="subcontent2" style = "display:block"> <div id = "Tab2-1"></div> </div>'; 
+                for(var j = 1; j < (mainCategories[uniqueTabs[1]]).length; j++)
+                {
+                    contentString = contentString 
+                                  + '<div id="Tab2-' + parseInt(j+1) + '\" class ="subcontent2" style = "display:none"> <div id = "Tab2-'+ parseInt(j+1) +'"></div>  </div>' ;
+                }
+
+                // Closing
+                contentString = contentString + 
                            '</div>' + 
                         '</div>' + 
                     '</div>' ;
+
 				infowindow2.setContent(contentString);
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
