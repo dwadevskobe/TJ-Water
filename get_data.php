@@ -4,21 +4,22 @@
 
 set_include_path(get_include_path() . PATH_SEPARATOR . 'helpers/');
 include 'PHPExcel/IOFactory.php';
+require_once 'config.inc';
 
-	$host = "localhost";
-	$username = "root";
-	$password = "";
-	$db = 'map';
+	// $host = "localhost";
+	// $username = "root";
+	// $password = "";
+	// $db = 'map';
 
-	/* Set up connection with database and do related tasks */
-	// Create connection
-	$conn = new mysqli($host, $username, $password, $db);
-	mysqli_set_charset($conn, "utf8");
+	// /* Set up connection with database and do related tasks */
+	// // Create connection
+	// $conn = new mysqli($host, $username, $password, $db);
+	// mysqli_set_charset($conn, "utf8");
 	
-	// Check connection
-	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
-	} 
+	// // Check connection
+	// if ($conn->connect_error) {
+	// 	die("Connection failed: " . $conn->connect_error);
+	// } 
 
     // gets all column names 
     $columnNames = "SHOW COLUMNS FROM data";

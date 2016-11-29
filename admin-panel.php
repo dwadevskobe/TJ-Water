@@ -1,14 +1,15 @@
 <?php
 set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
 include 'PHPExcel/IOFactory.php';
+require_once 'config.inc';
 header("Content-Type: text/html;charset=utf-8");
 if(isset($_POST["import"])) {	
-	/* Set up variables */
-	// Database
-	$host = "localhost";
-	$username = "root";
-	$password = "";
-	$db = 'map';
+	// /* Set up variables */
+	// // Database
+	// $host = "localhost";
+	// $username = "root";
+	// $password = "";
+	// $db = 'map';
 	// Others
 	$tabRow = 1;			// The row number where the tabs are written
 	$thresholdRow = 2;		// The row number where the threshold are written
@@ -32,16 +33,16 @@ if(isset($_POST["import"])) {
 		exit();
 	}
 	
-	/* Set up connection with database and do related tasks */
-	// Create connection
-	$conn = new mysqli($host, $username, $password, $db);
-	mysqli_set_charset($conn, "utf8");
-	$conn->query("SET NAMES 'utf8'");
+	// /* Set up connection with database and do related tasks */
+	// // Create connection
+	// $conn = new mysqli($host, $username, $password, $db);
+	// mysqli_set_charset($conn, "utf8");
+	//$conn->query("SET NAMES 'utf8'");
 	
-	// Check connection
-	if ($conn->connect_error) {
-		die("Connection failed: " . $conn->connect_error);
-	} 
+	// // Check connection
+	// if ($conn->connect_error) {
+	// 	die("Connection failed: " . $conn->connect_error);
+	// } 
 	echo "Connected successfully";
 	echo "<br/>";
 	
