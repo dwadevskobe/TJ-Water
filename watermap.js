@@ -113,7 +113,7 @@ oReq.onload = function() {
                 var j;
                 for(j = 1; j < (mainCategories[uniqueTabs[1]]).length; j++)
                 {
-                    contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-'+ j+1 + '\')">' + (mainCategories[uniqueTabs[1]])[j]  +'</a></li>';
+                    contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-'+ parseInt(j+1) + '\')">' + (mainCategories[uniqueTabs[1]])[j]  +'</a></li>';
                 }
                 contentString = contentString + 
                      '</ul></div>' + 
