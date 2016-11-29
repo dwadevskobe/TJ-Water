@@ -2,7 +2,7 @@
 
 // THIS FILE GETS DATA FROM THE DATABASE AND TALKS TO WATERMAP.JS
 
-set_include_path(get_include_path() . PATH_SEPARATOR . 'helpers/');
+set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
 include 'PHPExcel/IOFactory.php';
 require_once 'config.inc';
 
