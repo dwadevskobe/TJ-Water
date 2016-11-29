@@ -63,7 +63,7 @@ oReq.onload = function() {
         // When you hover over a marker
         google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
 			return function() {
-				infowindow1.setContent('<h3>' + locations[i][0] + '</h3><b>Water Level: </b><p style="color:green;"><b>SAFE</b></p>'  );
+				infowindow1.setContent('<h3>' + locations[i][0] + '</h3><b>Water Level: </b><p style="color:' + calculateRating(35)[0] + ';"><b>' + calculateRating(35)[1] + '</b></p>'  );
 				infowindow1.open(map, marker);
 			}
         })(marker, i));
@@ -78,7 +78,7 @@ oReq.onload = function() {
         // When you click on a marker, It shows all the tabs
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
-                var contentString = '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
+                var contentString = '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:' + calculateRating(34)[0] + '; display:inline; margin-left:10px"><b>' + calculateRating(34)[1] + '</b></p><br>' +
                     '<select style = "margin-top:15px">' + 
                        '<option value = "pfea"> PFEA </option>' +
                        '<option value = "cespt"> CESPT </option>' +
@@ -275,6 +275,14 @@ oReq.open("GET", "get_data.php", true);
 //                                 continue.
 
 oReq.send();
+
+// Return tuple of color and rating
+function calculateRating(rating) {
+    if(rating < 50)
+        return ["red", "UNSAFE"]
+    else
+        return ["green", "SAFE"]
+}
 
 // For the main tabs in the info window
 function openTab(evt, cityName) {
