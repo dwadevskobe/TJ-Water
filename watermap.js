@@ -106,6 +106,8 @@ oReq.onload = function() {
                     '</div>';
                 
                 // TAB 2 CONTENT SOFTCODED
+
+                // Start of tab content
                 contentString = contentString + 
                     ' <div id="Tab2" class="tabcontent">' + 
                        '<div id="content">' + 
@@ -118,7 +120,7 @@ oReq.onload = function() {
                     contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks2" onclick="openSub2(event, \'Tab2-'+ parseInt(j+1) + '\')">' + (mainCategories[uniqueTabs[1]])[j]  +'</a></li>';
                 }
 
-                // Main container
+                // Start of container
                 contentString = contentString + 
                      '</ul></div>' + 
                            '<div id="main-container">';
@@ -282,6 +284,7 @@ function calculateRating(rating) {
         return ["red", "UNSAFE"]
     else
         return ["green", "SAFE"]
+    // NOTE: parameters and conditions will change depending on client's requirements
 }
 
 // For the main tabs in the info window
