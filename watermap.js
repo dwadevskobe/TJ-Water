@@ -42,7 +42,6 @@ oReq.onload = function() {
         tempArray.push(colNames[$i]);
     }
 
-
     var map = new google.maps.Map(document.getElementById('map'), {
         zoom: 11,
         center: new google.maps.LatLng(32.352543, -117.123172),
@@ -79,7 +78,7 @@ oReq.onload = function() {
         // When you click on a marker, It shows all the tabs
         google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 			return function() {
-			 var contentString = '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
+                var contentString = '<h2 style = display:inline;>' + locations[i][0] + '</h2><p style="color:green; display:inline; margin-left:10px"><b>SAFE</b></p><br>' +
                     '<select style = "margin-top:15px">' + 
                        '<option value = "pfea"> PFEA </option>' +
                        '<option value = "cespt"> CESPT </option>' +
@@ -126,11 +125,11 @@ oReq.onload = function() {
                               '<div id="Tab2-5" class ="subcontent2" style = "display:none"> <div id = "Tab2-5"></div> </div>'+ 
                               '<div id="Tab2-6" class ="subcontent2" style = "display:none"> <div id = "Tab2-6"></div> </div>'+ 
                               '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-7"></div> </div>'+ 
+                              '<div id="Tab2-7" class ="subcontent2" style = "display:none"> <div id = "Tab2-8"></div> </div>'+ 
                            '</div>' + 
                         '</div>' + 
                     '</div>' ;
 				infowindow2.setContent(contentString);
-                    
 				infowindow2.open(map, marker);
 				infowindow1.close(map, marker);
 			       
