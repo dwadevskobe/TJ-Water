@@ -1,210 +1,333 @@
 <?php
-set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
-include 'PHPExcel/IOFactory.php';
-require_once 'config.inc';
 header("Content-Type: text/html;charset=utf-8");
-if(isset($_POST["import"])) {	
-	// /* Set up variables */
-	// // Database
-	// $host = "localhost";
-	// $username = "root";
-	// $password = "";
-	// $db = 'map';
-	// Others
-	$tabRow = 1;			// The row number where the tabs are written
-	$thresholdRow = 2;		// The row number where the threshold are written
-	$columnRow = 3;			// The row number where the column names are written
-	$dataRow = 4;   		// The row number where the data starts
-	$measuresColumn = 4;	// The column number where the measures start
+set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
+include 'PHPExcel/IOFactory.php'; // Excel parser
+require_once 'config.php'; // Config
 
-	/* Checks */
-	// Size
+// On import button click
+if(isset($_POST["import"])) {
+	/** Do checks **/
+	// Size. Size cannot be empty
 	if($_FILES["file"]["size"] == 0) {
-		echo 'Please upload a file';
+		echo 'Please upload a valid file';
 		echo "<br/>";
 		exit();
 	}
-	// Extension
+	// Extension. Only allow Excel files
 	$extension = pathinfo($_FILES["file"]["name"], PATHINFO_EXTENSION);
-	$allowedExtensions =  array('csv', 'xls', 'xlsx');
-	if(!in_array($extension, $allowedExtensions)) {
-		echo 'Please upload a file with the following extensions: .csv, .xls, and .xlsx';
-		echo "<br/>";
-		exit();
+	$allowedExtensions =  array('xls', 'xlsx');
+	if(!in_array($extension, $allowedExtensions))
+		printError("Please upload a file with the following extensions: .xls, and .xlsx", true);
+	
+	/** Set up connection with database and do related tasks **/
+	// Create connection
+	try {
+		$conn = new PDO("mysql:host=" . DB_HOST, DB_USER, DB_PASSWORD);
+		printDebug("Connected successfully to the database.");
+	}
+	catch(PDOException $e) {		
+		printError("Connection failed: " . $e->getMessage, true);
+	}
+	$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Get errors printed
+	$conn->exec("SET character_set_results = 'utf8', character_set_client = 'utf8', character_set_connection = 'utf8',
+				character_set_database = 'utf8', character_set_server = 'utf8'"); // Set attribute
+	
+	// Drop the previous exisiting database
+	dropDatabase($conn, DB_NAME);	
+	
+	// Create database
+	createDatabase($conn, DB_NAME);
+	
+	// Select database
+	$conn->query("use " . DB_NAME);
+	
+	/** Parse excel **/
+	$excelFile = PHPExcel_IOFactory::load($_FILES["file"]["tmp_name"]);
+	$sources = $excelFile->getSheetNames();
+	
+	/* Sources table */
+	// Write the different worksheets in the Excel file to a sources table in the database
+	createTable($conn, "sources", $arr = ["source"]); // Create the table sources
+	
+	// Insert all the sources into the created sources table
+	$query = $conn->prepare(prepareInsertQuery("sources", $arr = ["source"])); // Prepare insert query
+	foreach($sources as $value) {
+		$query->execute(array(strtolower($value)));
 	}
 	
-	// /* Set up connection with database and do related tasks */
-	// // Create connection
-	// $conn = new mysqli($host, $username, $password, $db);
-	// mysqli_set_charset($conn, "utf8");
-	//$conn->query("SET NAMES 'utf8'");
-	
-	// // Check connection
-	// if ($conn->connect_error) {
-	// 	die("Connection failed: " . $conn->connect_error);
-	// } 
-	echo "Connected successfully";
-	echo "<br/>";
-	
-	// Drop all relevant tables
-	$conn->query("DROP TABLE data");
-	$conn->query("DROP TABLE history");
-	$conn->query("DROP TABLE structure");
-	
-	/* Parse excel */
-	$excelFile = PHPExcel_IOFactory::load($_FILES["file"]["tmp_name"]);
-	$data = $excelFile->getActiveSheet();
-	
-	// Get column names	into an array
-	$highestColumm = $data->getHighestColumn();
-	$highestColumm++;
-    $columns = array();
-	$columnUnits = array();
-	for ($column = 'A'; $column != $highestColumm; $column++) {
-		$i = $data->getCell($column . $columnRow)->getValue();
-		if(!empty($i)) {
-			// Get column units
-			$unit = "";
-			if(($unit_pos = strpos($i, '(')) !== FALSE) {
-				$unit = substr($i, $unit_pos + 1);
-				$unit = substr($unit, 0, -1);		
-				$i = substr($i, 0, $unit_pos - 1);
-			}
-			$columnUnits[] = $unit;
+	// For each source, create corresponding tables. Table names are appended with _[source] to reference
+	// the different sources
+	$sourceIndex = 0;
+	foreach($sources as $currentSource) {
+		$excelFile->setActiveSheetIndex($sourceIndex);
+		$data = $excelFile->getActiveSheet();
+
+		/* Parse details of excel file */
+		$columns = []; // Column names
+		$measures = []; // Measures
+		$specialFields = []; // Special fields (those before the data)
+
+		// Get column names and measures into respective arrays
+		$highestColumm = $data->getHighestColumn();
+		$highestColumm++;
+		$index = 0;
+		for ($column = 'A'; $column != $highestColumm; $column++) {
+			$colName = $data->getCell($column . EXCEL_DATAROW)->getValue();
 			
-			// Format to compatible naming for MySQL
-			$i = trim($i);
-			$i = str_replace( array( '(', ')', '\'', '/', '.', ':', '%', '*', '&', '^', '%', '#', '@' ), '', $i);
-			$i = str_replace( '°', 'deg', $i);
-			$i = str_replace( ' ', '_', $i);
-			$i = remove_accents($i); // Remove accents
-			$i = strtolower($i);
-			// If column name exists, append column numbers
-			if(in_array($i, $columns)) {
-				$i .= '_' . $column; 
-			}
-			// Add to array
-			$columns[] = $i; // It actually is adding stuff. Weird syntax.
+			// Continue if empty
+			if(empty($colName))
+				continue;
+
+			// Add to measures array, if the column is a measure
+			if($index >= EXCEL_MEASURECOLUMN - 1) 
+				$measures[] = $colName; // It actually is adding stuff. Weird syntax.
+			
+			// If column name is duplicate, append column number at the end of the column name
+			if(in_array($colName, $columns))
+				$colName .= '_' . $column; 
+			
+			// Add to column array
+			$columns[] = standarizeString($colName);
+
+			$index++;
 		}
+		
+		// Get special fields into respective array
+		for($x = 0; $x < EXCEL_DATAROW - 1; $x++) {
+			$cell = $data->getCell("A" . ($x + 1))->getValue();
+			$specialFields[] = $cell;
+		}
+
+		/* Create structure table and populate with data */
+		// The structure table contains the fixed columns id, name, indx, and the special fields
+		$structureColumns = ["id", "name", "indx"];
+		foreach($specialFields as $field) {
+			$structureColumns[] = strtolower($field);
+		}		
+		createTable($conn, "structure_$currentSource", $structureColumns); // Create table
+
+		// Prepare insert query
+		$query = $conn->prepare(prepareInsertQuery("structure_$currentSource", $structureColumns));
+		// Loop through the measures since they are our data for the structure table and build a values array
+		// to insert to the table
+		$index = 0;
+		foreach($measures as $measure) {
+			$values = [];
+			$values[] = standarizeString($measure);	// id field
+			$values[] = $measure;					// name field
+			$values[] = $index;						// indx field
+			// Now, go through the special fields to fill out the values array
+			for($specialFieldRow = 1 ; $specialFieldRow < EXCEL_DATAROW; $specialFieldRow++) {
+				$value = $data->getCell(PHPExcel_Cell::stringFromColumnIndex($index + EXCEL_MEASURECOLUMN - 1) . $specialFieldRow)->getValue();
+				$values[] = $value;					// special field
+			}
+			$query->execute($values); // Insert into table
+			$index++;
+		}
+
+		/* Create the history table and populate with data */
+		// The history table contains the full excel file. It's a just a cell-by-cell transcription
+		createTable($conn, "history_$currentSource", $columns); // Create the table
+		
+		// Prepare insert query
+		$query = $conn->prepare(prepareInsertQuery("history_$currentSource", $columns));
+		// Loop through the rows until the end of data to build the values array to insert to the table
+		$highestRow = $data->getHighestRow();
+		for ($row = EXCEL_DATAROW + 1; $row <= $highestRow; $row++) {
+			$containsData = false; // We will use this variable to ignore empty rows
+			$values = [];
+			// Loop through the columns to actually get the data
+			for ($column = 'A'; $column != $highestColumm; $column++) {
+				// Check that column name is not empty (Avoid cell merging)
+				if(!empty($data->getCell($column . $row)->getValue())) {
+					$cell = $data->getCell($column . $row)->getCalculatedValue();
+					// If cell is empty, add empty value to array,
+					// else, add cell to array
+					if(empty($cell)) {
+						$values[] = "";
+					} else {
+						$containsData = true;
+						$values[] = $cell;
+					}
+				}				
+			}
+			// Insert into table only if it contains data
+			if($containsData){
+				$query->execute($values);
+			}
+		}
+		
+		/* Create the data table and populate it with data */
+		// The data table contains the latest data contained in the excel file
+		// This will be the table that is used by the map to request the latest updates on the locations
+		$query = "CREATE TABLE data_$currentSource AS SELECT * FROM history_$currentSource WHERE fecha = (SELECT MAX(fecha) FROM history_$currentSource)";
+
+		// Run query
+		try {
+			$conn->exec("$query");
+			printDebug("Successfully created table 'data_$currentSource'");
+		}
+		catch(PDOException $e) {
+			printError("Error creating table '$string': " . $e->getMessage(), false);
+			printError($query, true);
+		}
+
+		// Increment source index for next run
+		$sourceIndex++;
     }
 	
-	// Get structure data
-	$createStructureQuery = "CREATE TABLE structure (id TEXT, name TEXT, ind TEXT, tab TEXT, threshold TEXT, units TEXT) CHARACTER SET utf8";
-	if ($conn->query($createStructureQuery) === TRUE)
-		echo "Table structure created successfully";
-	else
-		echo "Error creating table: " . $conn->error;
-	echo "<br/>";
-	
-	$addValuesToStructureQuery = "INSERT INTO structure (id, name, ind, tab, threshold, units) VALUES (";
-	
-	$index = 0;
-	$previousTab = "";
-	for ($column = 'A'; $column != $highestColumm; $column++) {
-		// Only start parsing from the measures
-		if($index >= $measuresColumn - 1) {
-			// Get column name cell
-			$columnCell = $data->getCell($column . $columnRow)->getValue();
-			// Get rid of the parenthesis if found
-			if(($unit_pos = strpos($columnCell, '(')) !== FALSE)	
-				$columnCell = substr($columnCell, 0, $unit_pos - 1);
-			// Get tab cell
-			$tabCell = $data->getCell($column . $tabRow)->getValue();
-			
-			// Get tab
-			if(empty($tabCell))
-				$tabCell = $previousTab;
-			else
-				$previousTab = $tabCell;
-			
-			// Append
-			$addValuesToStructureQueryCopy = $addValuesToStructureQuery;
-			$addValuesToStructureQueryCopy .= '\'' . $columns[$index] . '\','; // id
-			$addValuesToStructureQueryCopy .= '\'' . $columnCell . '\','; // column name
-			$addValuesToStructureQueryCopy .= '\'' . ($index - $measuresColumn + 1) . '\','; // index
-			$addValuesToStructureQueryCopy .= '\'' . $tabCell . '\','; // tab
-			$addValuesToStructureQueryCopy .= '\'' . $data->getCell($column . $thresholdRow)->getValue() . '\','; // threshold			
-			$addValuesToStructureQueryCopy .= '\'' . $columnUnits[$index] . '\')'; // units	
-			
-			if ($conn->query($addValuesToStructureQueryCopy) === TRUE)
-				echo "Added value to structure table successfully";
-			else
-				echo "Error adding value to structure table: " . $conn->error;
-			echo "<br/>";
-		}		
-		$index++;
-	}	
-		
-	// Create table	and pre-make data insertion query
-	$createTableQuery = "CREATE TABLE history ("; // Create table query beginning
-	$insertDataQueryHeader = "INSERT INTO history ("; // Premake the data insertion query to save us from using another for-loop
-	for ($x = 0; $x < count($columns); $x++) {
-		$createTableQuery .= $columns[$x] . ' TEXT'; // Concatenate with column name from the array
-		$insertDataQueryHeader .= $columns[$x]; // Add to data insertion query too
-		if($x != count($columns) - 1) {
-			$createTableQuery .= ', '; // Add comma for next column
-			$insertDataQueryHeader .= ', ';
-		}
-		else{
-			$createTableQuery .= ')'; // Add ending parenthesis		
-			$insertDataQueryHeader .= ')';
-		}
-	}
-	$createTableQuery .= "  CHARACTER SET utf8";
-	if ($conn->query($createTableQuery) === TRUE)
-		echo "Table excel created successfully";
-	else
-		echo "Error creating table: " . $conn->error;
-	echo "<br/>";
-	
-	// Insert data
-	// Use the premade data insertion query and add the actual values of the table into it to
-	// finalize the query
-	$highestRow = $data->getHighestRow();
-	for ($row = $dataRow; $row <= $highestRow; $row++) {
-		$insertDataQuery = $insertDataQueryHeader;
-		$containsData = false; // If data from excel is all empty, ignore it and don't add it
-		$values = "";
-		for ($column = 'A'; $column != $highestColumm; $column++) {		
-			// Check that column name is not empty (Avoid cell merging)
-			if(!empty($data->getCell($column . $columnRow)->getValue())) {
-				if(empty($data->getCell($column . $row)->getCalculatedValue()))				
-					$value = "";
-				else{
-					$containsData = true;
-					// Format: 'some interesting data to be added'
-					$value = "'" . mysqli_real_escape_string($conn, $data->getCell($column . $row)->getCalculatedValue()) . "'";
-				}
-				$values .= $value . ',';
-		
-			}
-		}
-		
-		$values = substr($values, 0, -1); // Remove last lingering comma
-		$insertDataQuery .= ' VALUES (' . $values . ');'; // Add the values of the row into the query to finalize
-	
-		if($containsData == true) {
-			if ($conn->query($insertDataQuery) === TRUE) {
-				echo "Added a record to excel table successfully";
-			} else {
-				echo "Error: " . $insertDataQuery . "<br>" . $conn->error;
-			}
-			echo "<br/>";
-		}
-	}
-	
-	// Get latest updated and put it in a separate table
-	$latestDataQuery = "CREATE TABLE data AS SELECT * FROM history WHERE fecha = (SELECT MAX(fecha) FROM history)";
-	if ($conn->query($latestDataQuery) === TRUE)
-		echo "Latest data parsed from history successfully";
-	else
-		echo "Error creating table: " . $conn->error;
+	echo "The script has finished running";
 	echo "<br/>";
 
 	// Close connection
-	$conn->close();
+	$conn = null;
 }
 
+/*
+	Function that creates a table 
+
+	Parameters
+	$conn - ? - the connection to the database
+	$name - String - the name of the table
+	$columns - String[] - an array containing the column names
+*/
+function createTable($conn, $name, $columns) {
+	$query = "CREATE TABLE $name (";
+	// Fill up query with the column name array
+	foreach($columns as $val) {
+		$query .= "$val TEXT, ";
+	}
+	$query = substr($query, 0, -2) . ")"; // Remove last lingering comma and finish statement
+
+	// Run query
+	try {
+		$conn->exec("$query");
+		printDebug("Successfully created table '" . $name ."'");
+	}
+	catch(PDOException $e) {
+		printError("Error creating table '$name': " . $e->getMessage(), false);
+		printError($query, true);
+	}
+}
+
+/*
+	Function that returns a query for a PHP prepared statement 
+	More info at http://www.w3schools.com/PHP/php_mysql_prepared_statements.asp
+
+	Parameters
+	$tableName - String - the table name of the prepared statement
+	$array - String[] - the name of the columns
+
+	Return value
+	A string with format: "INSERT INTO $tableName ($array...) VALUES (:$array...)" 
+*/
+function prepareInsertQuery($tableName, $array) {
+	$statement = "INSERT INTO " . $tableName . " (";
+	// Fill up query with the column name array
+	foreach($array as $val) {
+		$statement .= "$val, ";
+	}
+	$statement = substr($statement, 0, -2) . ")"; // Remove last lingering comma and end segment
+	$statement .= " VALUES (";
+	// Fill values with :name
+	foreach($array as $val) {
+		$statement .=  "?, ";
+	}
+	$statement = substr($statement, 0, -2) . ")"; // Remove last lingering comma and finish statement
+	return $statement;
+}
+
+/*
+	Function that creates a database 
+
+	Parameters
+	$conn - ? - the connection to the database
+	$db - String - the name of the database to create
+*/
+function createDatabase($conn, $db) {
+	$query = "CREATE DATABASE $db";
+	try {
+		$conn->exec($query);
+		printDebug("The database $db has been created successfully");
+	}
+	catch(PDOException $e) {
+		printError("Error creating database: " . $e->getMessage(), false);
+		printError($query, true);
+	}
+}
+
+/*
+	Function that drops a database 
+
+	Parameters
+	$conn - ? - the connection to the database
+	$db - String - the name of the database to drop
+*/
+function dropDatabase($conn, $db) {
+	$query = "DROP DATABASE $db";
+	try {
+		$conn->exec($query);
+		printDebug("The database $db has been dropped successfully");
+	}
+	catch(PDOException $e) {
+		printDebug("The database $db does not exist");
+	}
+}
+
+/*
+	Function that standarizes a string to conform to MySQL's requirements for a column name in a table
+
+	Parameters
+	$string - String - the regular string
+
+	Return value
+	A string with the formatted input, readable by MySQL
+*/
+function standarizeString($string) {
+	$string = trim($string);
+	$string = str_replace( array( '(', ')', '\'', '/', '.', ':', '%', '*', '&', '^', '%', '#', '@', '°' ), '', $string);
+	$string = str_replace( ' ', '_', $string);
+	$string = remove_accents($string); // Remove accents
+	$string = strtolower($string);
+	return $string;
+}
+
+/*
+	Function that writes a debug text to the admin-panel 
+
+	Parameters
+	$string - String - the text to write
+*/
+function printDebug($string) {
+	if(DEBUG == true) {
+		echo $string;
+		echo "<br/>";
+	}
+}
+
+/*
+	Function that writes an error text to the admin-panel 
+
+	Parameters
+	$string - String - the text to write
+	$terminate - Boolean - determines whether to terminate the process on printing
+*/
+function printError($string, $terminate) {
+	echo $string;
+	echo "<br/>";
+	if($terminate === TRUE)
+		exit;
+}
+
+/*
+	Function that replaces every character with an accent to their respective non accented character 
+
+	Parameters
+	$string - String - the string to replace
+
+	Return value
+	A string with all the accents replaced by their counterpart
+*/
 function remove_accents($string) {
     if ( !preg_match('/[\x80-\xff]/', $string) )
         return $string;
@@ -315,21 +438,78 @@ function remove_accents($string) {
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-		<title>Import CSV/Excel file</title>
+		<!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />-->
+		<title>PFEA Water Quality Map Admin</title>
+		<style>
+			
+			table {
+				font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+				font-size: 12px;
+				margin-top: 45px;
+				width: 480px;
+				text-align: left;
+				border-collapse: collapse;
+				border: 1px solid #5a5c51;
+			}
+			th {
+				padding: 15px 10px 10px 10px;
+				font-weight: normal;
+				font-size: 14px;
+				color: #039;
+			}
+			tbody {
+				background: #e8edff;
+			}
+			td {
+				padding: 10px;
+				color: #039;
+				border-top: 1px dashed #5a5c51;
+				border-right: 1px dashed #5a5c51;
+			}
+			td.special {
+				background: #d0dafd;
+				padding: 10px;
+				color: #039;
+				border-top: 1px dashed #5a5c51;
+				border-right: 1px dashed #5a5c51;
+			}
+			a {				
+				color: #5a5c51;
+			}
+		</style>
 	</head>
 	<body>
 		<form enctype="multipart/form-data" method="post">
-			<table border="1" width="30%" align="center">
-				<tr >
-				<td colspan="2" align="center"><strong>Import CSV/Excel file</strong></td>
-				</tr>
-
-				<tr>
-				<td align="center">CSV/Excel File:</td><td><input type="file" name="file" id="file"></td></tr>
-				<tr >
-				<td colspan="2" align="center"><input type="submit" name="import" value="Import"></td>
-				</tr>
+			<table border="1" width="40%" align="center">			
+    			<thead>
+					<tr>
+						<th colspan="2" align="center"><strong>PFEA Water Quality Map - Admin Panel</strong></th>
+					</tr>
+   				</thead>
+				<tbody>
+					<tr>
+						<td class="special" colspan="2" align="left"><strong>Update Map - Import an Excel file</strong></td>
+					</tr>
+					<tr>
+						<td align="center">Excel file (.xls, .xlsx)</td>
+						<td><input type="file" name="file" id="file"></td>
+					</tr>
+					<tr>
+						<td colspan="2" align="center"><input type="submit" name="import" value="Import"></td>
+					</tr>
+					
+					<tr>
+						<td class="special" colspan="2" align="left"><strong>Documentation</strong></td>
+					</tr>
+					<tr>
+						<td align="center">Client</td>
+						<td align="center"><a href="https://docs.google.com/document/d/17dOb2efxTtzNrjni9kba32Qm1824V_EylqvzHwcNJOk">Link</a></td>
+					</tr>
+					<tr>
+						<td align="center">Developer</td>
+						<td align="center"><a href="https://docs.google.com/document/d/1hgKUZW499j5S0wNf6Xmc9PZsuT8jIiHJYwgbUPLjgFA">Link</a></td>
+					</tr>
+				</tbody>				
 			</table>
 		</form>
 	</body>
