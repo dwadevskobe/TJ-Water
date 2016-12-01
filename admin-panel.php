@@ -117,7 +117,19 @@ if(isset($_POST["import"])) {
 			$values[] = $index;						// indx field
 			// Now, go through the special fields to fill out the values array
 			for($specialFieldRow = 1 ; $specialFieldRow < EXCEL_DATAROW; $specialFieldRow++) {
-				$value = $data->getCell(PHPExcel_Cell::stringFromColumnIndex($index + EXCEL_MEASURECOLUMN - 1) . $specialFieldRow)->getValue();
+				$cell = $data->getCell(PHPExcel_Cell::stringFromColumnIndex($index + EXCEL_MEASURECOLUMN - 1) . $specialFieldRow);
+				$value = $cell->getValue();
+				// If value is empty, there is a chance it might be due to merged cells
+				if(empty($value)) {
+					// Do 
+					foreach ($data->getMergeCells() as $cells) {
+						if ($cell->isInRange($cells)) {
+                			list($cells,) = PHPExcel_Cell::splitRange($cells);
+							$value = $data->getCell($cells[0])->getValue();
+							break;
+						}
+					}
+				}
 				$values[] = $value;					// special field
 			}
 			$query->execute($values); // Insert into table
@@ -137,18 +149,41 @@ if(isset($_POST["import"])) {
 			$values = [];
 			// Loop through the columns to actually get the data
 			for ($column = 'A'; $column != $highestColumm; $column++) {
-				// Check that column name is not empty (Avoid cell merging)
-				if(!empty($data->getCell($column . $row)->getValue())) {
-					$cell = $data->getCell($column . $row)->getCalculatedValue();
-					// If cell is empty, add empty value to array,
-					// else, add cell to array
-					if(empty($cell)) {
-						$values[] = "";
-					} else {
-						$containsData = true;
-						$values[] = $cell;
+				// Break if all the columns have been processed
+				if(PHPExcel_Cell::columnIndexFromString($column) > count($columns)) 
+					break;
+
+				$cell = $data->getCell($column . $row)->getCalculatedValue();
+							
+				// If cell is empty, add empty value to array,
+				// else, add cell to array
+				if(empty($cell)) {
+					$values[] = "";
+				} else {
+					$containsData = true;
+
+					// If it's the first column (date), change the date into MySQL format
+					if($column == 'A') {
+						$cell = $data->getCell($column . $row);
+						// Get whether the cell is formatted by Excel and get the date accordingly
+						if (PHPExcel_Shared_Date::isDateTime($cell)) 
+							$date = $cell->getFormattedValue();
+						else
+							$date = $cell->getValue();
+
+						// Replace weird characters seen in the Excel file					
+						$date = str_replace('"', '', $date);
+						$date = str_replace('-', '/', $date);
+						
+						// Change to MySQL format
+						if(strlen(explode("/", $date)[2]) == 2)
+							$cell = Datetime::createFromFormat('d/m/y', $date)->format('Y-m-d');
+						else
+							$cell = Datetime::createFromFormat('d/m/Y', $date)->format('Y-m-d');				
 					}
-				}				
+
+					$values[] = $cell;
+				}			
 			}
 			// Insert into table only if it contains data
 			if($containsData){
@@ -194,7 +229,11 @@ function createTable($conn, $name, $columns) {
 	$query = "CREATE TABLE $name (";
 	// Fill up query with the column name array
 	foreach($columns as $val) {
-		$query .= "$val TEXT, ";
+		// Check if column name is a date
+		if(strpos($val, 'fecha') !== false)
+			$query .= "$val DATE, "; 
+		else
+			$query .= "$val TEXT, ";
 	}
 	$query = substr($query, 0, -2) . ")"; // Remove last lingering comma and finish statement
 
