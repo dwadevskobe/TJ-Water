@@ -38,11 +38,13 @@
 	$name = array();
 	$tab = array();
 	$units = array();
+	$threshold = array();
 	try {
 		foreach($conn->query("SELECT * FROM structure_$source") as $row) {
 		   array_push($name, $row["name"]);		// first array in array locations is colNames
 		   array_push($tab, $row["tabs"]);		// second array in array locations is colNames
 		   array_push($units, $row["units"]);	// third array in array locations is colNames
+		   array_push($threshold, $row["threshold"]);	// third array in array locations is colNames
 		}
 		
 		// Push into the data variable, which will go to the js file
