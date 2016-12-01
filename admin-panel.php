@@ -9,8 +9,7 @@ if(isset($_POST["import"])) {
 	/** Do checks **/
 	// Size. Size cannot be empty
 	if($_FILES["file"]["size"] == 0) {
-		echo 'Please upload a valid file';
-		echo "<br/>";
+		printError("Please upload a valid file", true);
 		exit();
 	}
 	// Extension. Only allow Excel files

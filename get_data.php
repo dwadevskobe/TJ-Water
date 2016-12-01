@@ -1,82 +1,67 @@
 <?php
+	// THIS FILE GETS DATA FROM THE DATABASE AND TALKS TO WATERMAP.JS
+	set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
+	require_once 'config.php';
 
-// THIS FILE GETS DATA FROM THE DATABASE AND TALKS TO WATERMAP.JS
-
-set_include_path(get_include_path() . PATH_SEPARATOR . 'include/');
-include 'PHPExcel/IOFactory.php';
-require_once 'config.inc';
-
-	// $host = "localhost";
-	// $username = "root";
-	// $password = "";
-	// $db = 'map';
-
-	// /* Set up connection with database and do related tasks */
-	// // Create connection
-	// $conn = new mysqli($host, $username, $password, $db);
-	// mysqli_set_charset($conn, "utf8");
+	$source = $_GET['source'];
 	
-	// // Check connection
-	// if ($conn->connect_error) {
-	// 	die("Connection failed: " . $conn->connect_error);
-	// } 
+	// Create connection
+	try {
+		$conn = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASSWORD);
+	}
+	catch(PDOException $e) {		
+		echo "Connection failed: " . $e->getMessage;
+		echo "<br/>";
+		exit;
+	}
+	$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); // Get errors printed
+	$conn->exec("SET character_set_results = 'utf8', character_set_client = 'utf8', character_set_connection = 'utf8',
+				character_set_database = 'utf8', character_set_server = 'utf8'"); // Set attribute
+	
+    // Gets all column names
+    $colNames = array();  
+	try {
+		foreach($conn->query("SHOW COLUMNS FROM data_$source") as $row) {
+			array_push($colNames, $row['Field']);
+		}
+	}
+	catch(PDOException $e) {
+		echo "There was a problem retrieving the column names " . $e->getMessage();
+		echo "<br/>";
+		exit;
+	}
 
-    // gets all column names 
-    $columnNames = "SHOW COLUMNS FROM data";
-    $columns = $conn -> query($columnNames);
+	// Array with all the data to be used for later
+	$data = array();
 
-    if(!$columnNames)
-    {
-        echo 'Something wrong with query: ' . mysqli_error($conn);
-    }
-
-    $colNames = array();
-   
-    while($row = mysqli_fetch_array($columns)){
-       array_push($colNames,$row['Field']);
-    }   
-
-
-    $locations = array();  // the whole array to be passed into watermap
-
-
-    $tab = "SELECT * from structure";
-    $tabs = $conn -> query($tab);
-
-    if (!$tabs){
-      echo 'Something wrong with query: ' . mysqli_error($conn);
-    }
-
-    $name = array();
-    $tab = array();
-    $units = array();
-
-    while($row = mysqli_fetch_array($tabs)){
-       array_push($name,$row['name']);
-       array_push($tab,$row['tab']);
-       array_push($units,$row['units']);
-    }   
-
-    array_push($locations,$name);   // first array in array locations is colNames
-    array_push($locations,$tab);   // second array in array locations is colNames
-    array_push($locations,$units);   // third array in array locations is colNames
-
-
-    $sql = "SELECT * FROM data";
-
-    $result = $conn->query($sql);
-
-    // debugging purposes
-    if(!$result)
-    {
-        echo 'Something wrong with query: ' . mysqli_error($conn);
-    }
-  
+	// Get the name, tab, and units info from the structure table
+	$name = array();
+	$tab = array();
+	$units = array();
+	try {
+		foreach($conn->query("SELECT * FROM structure_$source") as $row) {
+		   array_push($name, $row["name"]);		// first array in array locations is colNames
+		   array_push($tab, $row["tabs"]);		// second array in array locations is colNames
+		   array_push($units, $row["units"]);	// third array in array locations is colNames
+		}
+		
+		// Push into the data variable, which will go to the js file
+		array_push($data, $name);	// first array in array locations is colNames
+		array_push($data, $tab);	// second array in array locations is colNames
+		array_push($data, $units);	// third array in array locations is colNames
+	}
+	catch(PDOException $e) {
+		echo "There was a problem parsing the structure table " . $e->getMessage();
+		echo "<br/>";
+		exit;
+	}	
+	
+    $result = $conn->query("SELECT * FROM data_$source");
 
     // This whole result chunk is only for location coordinates and beach name ATM 
-	if ($result->num_rows > 0) {
+	if ($result->rowCount() > 0) {
        // output data of each row
-       while($row = $result->fetch_assoc()) {
+       while($row = $result->fetch(PDO::FETCH_ASSOC)) {
        	  if ( $row[$colNames[2]] != ""){
        	     $row[$colNames[2]] = str_replace( array( '(', ')', '\'', '/', '.', ':', '"', '*', '&', '^', '%', '#', '@' ), '', $row[$colNames[2]]);
        	     $row[$colNames[2]] = str_replace( '°', '.', $row[$colNames[2]]);
@@ -115,18 +100,17 @@ require_once 'config.inc';
              }
             
              // an array of arrays
-             array_push($locations,$words);
+             array_push($data,$words);
           }
        }
 
        // to be retrieved in other file 
-       // CURRENTLY:  locations[0] : name, locations[1] : latitude, locations[2]: longitude
-       echo json_encode($locations);
+       // CURRENTLY:  data[0] : name, data[1] : latitude, data[2]: longitude
+       echo json_encode($data);
     } 
     else {
        echo "0 results";
     }
 
-    $conn->close();
-
+    $conn = null;
 ?>
