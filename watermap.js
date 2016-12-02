@@ -170,22 +170,22 @@ function onDataLoad(doRefresh) {
         contentString = contentString + '<div id="content">' + '<div id="tab-container"><ul>'
                         
         // Make first inner tab active, then loop through the rest of the tabs
-        contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks active" onclick="openSub(event, \'' + 
-			tabFirstIndexString + '\')">' + (mainCategories[uniqueTabs[j]])[0] + '</a></li>';
+        contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks' + j + ' active" onclick="openSub(event, \'' + 
+			tabFirstIndexString + '\',' + j +')">' + (mainCategories[uniqueTabs[j]])[0] + '</a></li>';
         for(var index = 1; index < (mainCategories[uniqueTabs[j]]).length; index++) {
             var tabLoopIndexString = "Tab" + parseInt(j + 1) + '-' + parseInt(index + 1);
-            contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks" onclick="openSub(event, \'' +
-			tabLoopIndexString + '\')">' + (mainCategories[uniqueTabs[j]])[index] + '</a></li>';
+            contentString = contentString + '<li><a href="javascript:void(0)" class="sublinks' + j + '" onclick="openSub(event, \'' +
+			tabLoopIndexString + '\',' + j + ')">' + (mainCategories[uniqueTabs[j]])[index] + '</a></li>';
         }
 
         // Start of container
         contentString = contentString + '</ul></div>' + '<div id="main-container">';
 
         // Make first content active, then loop through the rest of the contents
-        contentString = contentString + '<div id="' + tabFirstIndexString + '" class ="subcontent" style = "display:block"> <div id = "' + tabFirstIndexString + '"></div> </div>'; 
+        contentString = contentString + '<div id="' + tabFirstIndexString + '" class ="subcontent' + j +'" style = "display:block"> <div id = "' + tabFirstIndexString + '"></div> </div>'; 
         for(var index = 1; index < (mainCategories[uniqueTabs[j]]).length; index++) {
             var tabLoopIndexString = "Tab" + parseInt(j+1) + '-' + parseInt(index+1);
-            contentString = contentString + '<div id="' + tabLoopIndexString + '\" class ="subcontent" style = "display:none"> <div id = "' + tabLoopIndexString + '"></div></div>' ;
+            contentString = contentString + '<div id="' + tabLoopIndexString + '\" class ="subcontent' + j +'" style = "display:none"> <div id = "' + tabLoopIndexString + '"></div></div>' ;
         }
 
         // Closing
@@ -285,19 +285,19 @@ function openTab(evt, cityName) {
 }
 
 // For the subtab1 in the info window
-function openSub(evt, cityName) {
+function openSub(evt, cityName, j) {
 
     // Declare all variables
     var i, tabcontent, tablinks;
 
     // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("subcontent");
+    tabcontent = document.getElementsByClassName("subcontent" + j);
     for (i = 0; i < tabcontent.length; i++) {
         tabcontent[i].style.display = "none";
     }
 
     // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("sublinks");
+    tablinks = document.getElementsByClassName("sublinks" + j);
     for (i = 0; i < tablinks.length; i++) {
         tablinks[i].className = tablinks[i].className.replace(" active", "");
     }
