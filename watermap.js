@@ -6,6 +6,7 @@ var sourceRequest = new XMLHttpRequest(); // Source request object
 var dataRequest = new XMLHttpRequest(); // Data request object
 var sources = []; // List of sources
 var data = []; // The current league
+var previousSource = 0;
 var currentSource = 0;
 var currentLocation = 0;
 var marker;
@@ -20,22 +21,94 @@ var map = new google.maps.Map(document.getElementById('map'), {
     mapTypeId: google.maps.MapTypeId.ROADMAP
 });
 
-// Data gets loaded
-dataRequest.onload = function() {
-	var foo = JSON.parse(dataRequest.responseText);
-	data = [];
-	for ( var $i = 0; $i < foo.length; $i++){
-		data.push(foo[$i]);
-	}
+// Source gets loaded
+sourceRequest.onload = function() {
+	// Get sources
+	var foo = JSON.parse(sourceRequest.responseText);
+    for(var $i = 0; $i < foo.length; $i++) {
+        sources.push(foo[$i]);
+    }
 	
+	// Load markers from the first source
+	dataRequest.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			var foo = JSON.parse(dataRequest.responseText);			
+			for (var $i = 0; $i < foo.length; $i++){
+				data.push(foo[$i]);
+			}
+			
+			var i;
+			for (i = 3; i < data.length; i++) {
+				marker = new google.maps.Marker({
+					position: new google.maps.LatLng(data[i][1], data[i][2]),
+					map: map
+				});
+				
+				// Add listeners to the map
+				// On marker click
+				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
+					return function() {
+						currentLocation = i;
+						getData(0);
+					}
+				})(marker, i));
+				
+				// On marker hover start
+				google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
+					return function() {
+						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(35)[0] + ';"><b>' + calculateRating(35)[1] + '</b></p>'  );
+						hoverWindow.open(map, marker);
+					}
+				})(marker, i));
+
+				// On marker hover stop
+				google.maps.event.addListener(marker, 'mouseout', (function(marker, i) {
+					return function() {
+						hoverWindow.close(map, marker);
+					}
+				})(marker, i));
+			}					
+		}
+	};
+	dataRequest.open("GET", "get_data.php?source=" + sources[0], true);
+	dataRequest.send();
+};
+
+sourceRequest.open("GET", "get_sources.php", true);
+sourceRequest.send();
+
+function getData(i) {
+	dataRequest.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			console.log(dataRequest.responseText);
+			if(dataRequest.responseText == "0 results") {
+				document.getElementById('dropdown').value = previousSource;
+				currentSource = previousSource;
+				window.alert("This location does not have data from the selected source!");
+			} else {
+				var foo = JSON.parse(dataRequest.responseText);
+				data = [];
+				for ( var $i = 0; $i < foo.length; $i++){
+					data.push(foo[$i]);
+				}
+				onDataLoad();
+			}				
+		}
+	};
+	dataRequest.open("GET", "get_data.php?source=" + sources[i], true);
+	dataRequest.send();
+}
+
+// Data gets loaded
+function onDataLoad() {	
 	// All the sub-column names
-    var colNames = foo[0];
+    var colNames = data[0];
 
     // All the main column names
-    var tabNum = foo[1];
+    var tabNum = data[1];
 
     // Corresponding units to corresponding colNames EX: colNames[0] -> units[0]
-    var units = foo[2];
+    var units = data[2];
 
     // To get an array of unique tabs
     uniqueTabs = tabNum.filter(function(item, pos) {
@@ -112,7 +185,11 @@ dataRequest.onload = function() {
         // Closing
         contentString = contentString + '</div>' + '</div>' + '</div>' ;
     }
-			       
+	
+	infoWindow.setContent(contentString);
+	infoWindow.open(map, marker);
+    hoverWindow.close(map, marker);
+	
 	google.charts.load('current', {'packages':['corechart']});
 	
 	// Set a callback to run when the Google Visualization API is loaded.
@@ -156,76 +233,11 @@ dataRequest.onload = function() {
             }
         }
     }
-
-	infoWindow.setContent(contentString);
-	infoWindow.open(map, marker);
-    hoverWindow.close(map, marker);
-}
-
-// Source gets loaded
-sourceRequest.onload = function() {
-	// Get sources
-	var foo = JSON.parse(sourceRequest.responseText);
-    for(var $i = 0; $i < foo.length; $i++) {
-        sources.push(foo[$i]);
-    }
-	
-	// Load markers from the first source
-	var dataRequest = new XMLHttpRequest();
-	dataRequest.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			var foo = JSON.parse(dataRequest.responseText);			
-			for (var $i = 0; $i < foo.length; $i++){
-				data.push(foo[$i]);
-			}
-			
-			var i;
-			for (i = 3; i < data.length; i++) {
-				marker = new google.maps.Marker({
-					position: new google.maps.LatLng(data[i][1], data[i][2]),
-					map: map
-				});
-				
-				// Add listeners to the map
-				// On marker click
-				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
-					return function() {
-						currentLocation = i;
-						getData(0);
-					}
-				})(marker, i));
-				
-				// On marker hover start
-				google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
-					return function() {
-						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(35)[0] + ';"><b>' + calculateRating(35)[1] + '</b></p>'  );
-						hoverWindow.open(map, marker);
-					}
-				})(marker, i));
-
-				// On marker hover stop
-				google.maps.event.addListener(marker, 'mouseout', (function(marker, i) {
-					return function() {
-						hoverWindow.close(map, marker);
-					}
-				})(marker, i));
-			}					
-		}
-	};
-	dataRequest.open("GET", "get_data.php?source=" + sources[0], true);
-	dataRequest.send();
-};
-
-sourceRequest.open("GET", "get_sources.php", true);
-sourceRequest.send();
-
-function getData(i) {
-	dataRequest.open("GET", "get_data.php?source=" + sources[i], true);
-	dataRequest.send();
 }
 
 function onDropdownChange() {
-	var dataRequest = new XMLHttpRequest();
+	previousSource = currentSource;
+	currentSource = document.getElementById('dropdown').value;
 	getData(document.getElementById('dropdown').value);
 }
 
