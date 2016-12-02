@@ -9,7 +9,7 @@ var data = []; // The current league
 var previousSource = 0;
 var currentSource = 0;
 var currentLocation = 0;
-var marker;
+var currentMarker;
 
 var hoverWindow = new google.maps.InfoWindow();
 var infoWindow = new google.maps.InfoWindow();
@@ -48,7 +48,7 @@ sourceRequest.onload = function() {
 				// On marker click
 				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 					return function() {
-						currentLocation = i;
+						currentLocation = i; currentMarker = marker;
 						getData(0);
 					}
 				})(marker, i));
@@ -187,8 +187,8 @@ function onDataLoad() {
     }
 	
 	infoWindow.setContent(contentString);
-	infoWindow.open(map, marker);
-    hoverWindow.close(map, marker);
+	infoWindow.open(map, currentMarker);
+    hoverWindow.close(map, currentMarker);
 	
 	google.charts.load('current', {'packages':['corechart']});
 	
