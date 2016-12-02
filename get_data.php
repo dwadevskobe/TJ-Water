@@ -58,7 +58,7 @@
 		exit;
 	}	
 	
-    $result = $conn->query("SELECT * FROM data_$source");
+    $result = $conn->query("SELECT * FROM data_$source ORDER BY sitio");
 
     // This whole result chunk is only for location coordinates and beach name ATM 
 	if ($result->rowCount() > 0) {

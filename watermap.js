@@ -23,6 +23,7 @@ var map = new google.maps.Map(document.getElementById('map'), {
 
 // Source gets loaded
 sourceRequest.onload = function() {
+	isChangingSource = false;
 	// Get sources
 	var foo = JSON.parse(sourceRequest.responseText);
     for(var $i = 0; $i < foo.length; $i++) {
@@ -49,7 +50,7 @@ sourceRequest.onload = function() {
 				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 					return function() {
 						currentLocation = i; currentMarker = marker;
-						getData(0);
+						getData(0, true);
 					}
 				})(marker, i));
 				
@@ -77,7 +78,7 @@ sourceRequest.onload = function() {
 sourceRequest.open("GET", "get_sources.php", true);
 sourceRequest.send();
 
-function getData(i) {
+function getData(i, doRefresh) {
 	dataRequest.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			console.log(dataRequest.responseText);
@@ -91,7 +92,7 @@ function getData(i) {
 				for ( var $i = 0; $i < foo.length; $i++){
 					data.push(foo[$i]);
 				}
-				onDataLoad();
+				onDataLoad(doRefresh);
 			}				
 		}
 	};
@@ -100,7 +101,7 @@ function getData(i) {
 }
 
 // Data gets loaded
-function onDataLoad() {	
+function onDataLoad(doRefresh) {	
 	// All the sub-column names
     var colNames = data[0];
 
@@ -178,7 +179,7 @@ function onDataLoad() {
         // Make first content active, then loop through the rest of the contents
         contentString = contentString + '<div id="' + tabFirstIndexString + '" class ="subcontent" style = "display:block"> <div id = "' + tabFirstIndexString + '"></div> </div>'; 
         for(var index = 1; index < (mainCategories[uniqueTabs[j]]).length; index++) {
-            var tabLoopIndexString = "Tab" + parseInt(j+1) + '-' + parseInt(index+1);
+            var tabLoopIndexString = "Tab" + parseInt(j + 1) + '-' + parseInt(index + 1);
             contentString = contentString + '<div id="' + tabLoopIndexString + '\" class ="subcontent" style = "display:none"> <div id = "' + tabLoopIndexString + '"></div></div>' ;
         }
 
@@ -187,8 +188,13 @@ function onDataLoad() {
     }
 	
 	infoWindow.setContent(contentString);
-	infoWindow.open(map, currentMarker);
-    hoverWindow.close(map, currentMarker);
+	console.log("refresh" + doRefresh);
+	if(doRefresh) {
+		infoWindow.open(map, currentMarker);
+		hoverWindow.close(map, currentMarker);
+	} else {
+		document.getElementById('dropdown').value = currentSource;
+	}
 	
 	google.charts.load('current', {'packages':['corechart']});
 	
@@ -238,7 +244,7 @@ function onDataLoad() {
 function onDropdownChange() {
 	previousSource = currentSource;
 	currentSource = document.getElementById('dropdown').value;
-	getData(document.getElementById('dropdown').value);
+	getData(document.getElementById('dropdown').value, false);
 }
 
 // Return tuple of color and rating
