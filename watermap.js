@@ -36,7 +36,6 @@ sourceRequest.onload = function() {
 			var foo = JSON.parse(dataRequest.responseText);			
 			for (var $i = 0; $i < foo.length; $i++){
 				data.push(foo[$i]);
-                console.log(foo[3][0]);
 			}
 			
 			var i;
@@ -58,7 +57,7 @@ sourceRequest.onload = function() {
 				// On marker hover start
 				google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
 					return function() {
-						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(data[i][3], threshold[0])[0] + ';"><b>' + calculateRating(data[i][3], threshold[0])[1] + '</b></p>'  );
+						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(data[i][3], data[3][0])[0] + ';"><b>' + calculateRating(data[i][3], data[3][0])[1] + '</b></p>'  );
 						hoverWindow.open(map, marker);
 					}
 				})(marker, i));
@@ -82,7 +81,6 @@ sourceRequest.send();
 function getData(i, doRefresh) {
 	dataRequest.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			console.log(dataRequest.responseText);
 			if(dataRequest.responseText == "0 results") {
 				document.getElementById('dropdown').value = previousSource;
 				currentSource = previousSource;
@@ -113,7 +111,6 @@ function onDataLoad(doRefresh) {
     var units = data[2];
 
     threshold = data[3];
-    console.log(threshold);
 
     // To get an array of unique tabs
     uniqueTabs = tabNum.filter(function(item, pos) {
@@ -133,7 +130,6 @@ function onDataLoad(doRefresh) {
         tempArray.push(colNames[$i]);
     }
 	
-    console.log(data[currentLocation]);
 	var contentString = '<h2 style = display:inline;>' + data[currentLocation][0] + '</h2><p style="color:' + calculateRating(data[currentLocation][3], threshold[0])[0] + '; display:inline; margin-left:10px"><b>' + calculateRating(data[currentLocation][3], threshold[0])[1] + '</b></p><br>';
 	           
 	// Dropdown
@@ -253,8 +249,6 @@ function onDropdownChange() {
 
 // Return tuple of color and rating
 function calculateRating(rating, threshold) {
-    console.log("rating: " + rating);
-    console.log("threshold: " + threshold);
     if(rating < threshold)
         return ["red", "UNSAFE"]
     else
