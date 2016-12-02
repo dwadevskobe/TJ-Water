@@ -40,9 +40,13 @@ sourceRequest.onload = function() {
 			
 			var i;
 			for (i = 3; i < data.length; i++) {
+
+                var color = calculateRating(data[i][3],data[3][0]);
+
 				marker = new google.maps.Marker({
 					position: new google.maps.LatLng(data[i][1], data[i][2]),
-					map: map
+					map: map,
+                    icon: 'http://maps.google.com/mapfiles/ms/icons/' + color[0] + '-dot.png'
 				});
 				
 				// Add listeners to the map
