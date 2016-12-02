@@ -229,8 +229,9 @@ function onDataLoad(doRefresh) {
 			// Loop through k inner tabs
 			for(var k = 0; k < (mainCategories[uniqueTabs[j]]).length; k++) {
 				dataLoop = table.clone();
+                var number = data[currentLocation][indexCount].replace(/[^\d.-]/g, '');;
 				dataLoop.addRows([
-					[ (mainCategories[uniqueTabs[j]])[k] + ' (' + units[unitIndex] + ')', Number(data[currentLocation][indexCount]) ]
+					[ (mainCategories[uniqueTabs[j]])[k] + ' (' + units[unitIndex] + ')', Number(number) ]
 				]);
 				var tabIndex = "Tab" + parseInt(j + 1) + "-" + parseInt(k + 1);
 				var tabLoop = document.getElementById(tabIndex);
