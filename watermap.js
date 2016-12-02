@@ -249,7 +249,7 @@ function onDropdownChange() {
 
 // Return tuple of color and rating
 function calculateRating(rating, threshold) {
-    if(rating < threshold)
+    if(parseInt(rating) > parseInt(threshold))
         return ["red", "UNSAFE"]
     else
         return ["green", "SAFE"]
