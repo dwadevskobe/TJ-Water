@@ -51,7 +51,7 @@ sourceRequest.onload = function() {
 				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 					return function() {
 						currentLocation = i; currentMarker = marker;
-						getData(0);
+						getData(0, true);
 					}
 				})(marker, i));
 				
@@ -79,7 +79,7 @@ sourceRequest.onload = function() {
 sourceRequest.open("GET", "get_sources.php", true);
 sourceRequest.send();
 
-function getData(i) {
+function getData(i, doRefresh) {
 	dataRequest.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			console.log(dataRequest.responseText);
@@ -93,7 +93,7 @@ function getData(i) {
 				for ( var $i = 0; $i < foo.length; $i++){
 					data.push(foo[$i]);
 				}
-				onDataLoad();
+				onDataLoad(doRefresh);
 			}				
 		}
 	};
@@ -193,8 +193,12 @@ function onDataLoad() {
     }
 	
 	infoWindow.setContent(contentString);
-	infoWindow.open(map, currentMarker);
-    hoverWindow.close(map, currentMarker);
+	if(doRefresh) {
+ 		infoWindow.open(map, currentMarker);
+ 		hoverWindow.close(map, currentMarker);
+ 	} else {
+ 		document.getElementById('dropdown').value = currentSource;
+ 	}
 	
 	google.charts.load('current', {'packages':['corechart']});
 	
@@ -244,7 +248,7 @@ function onDataLoad() {
 function onDropdownChange() {
 	previousSource = currentSource;
 	currentSource = document.getElementById('dropdown').value;
-	getData(document.getElementById('dropdown').value);
+	getData(document.getElementById('dropdown').value, false);
 }
 
 // Return tuple of color and rating
