@@ -51,6 +51,7 @@
 		array_push($data, $name);	// first array in array locations is colNames
 		array_push($data, $tab);	// second array in array locations is colNames
 		array_push($data, $units);	// third array in array locations is colNames
+		array_push($data, $threshold); 
 	}
 	catch(PDOException $e) {
 		echo "There was a problem parsing the structure table " . $e->getMessage();
@@ -58,7 +59,7 @@
 		exit;
 	}	
 	
-    $result = $conn->query("SELECT * FROM data_$source ORDER BY sitio");
+    $result = $conn->query("SELECT * FROM data_$source");
 
     // This whole result chunk is only for location coordinates and beach name ATM 
 	if ($result->rowCount() > 0) {
