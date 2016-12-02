@@ -102,7 +102,7 @@ function getData(i, doRefresh) {
 }
 
 // Data gets loaded
-function onDataLoad() {	
+function onDataLoad(doRefresh) {	
 	// All the sub-column names
     var colNames = data[0];
 
