@@ -10,6 +10,7 @@ var previousSource = 0;
 var currentSource = 0;
 var currentLocation = 0;
 var currentMarker;
+var threshold = [];
 
 var hoverWindow = new google.maps.InfoWindow();
 var infoWindow = new google.maps.InfoWindow();
@@ -23,7 +24,6 @@ var map = new google.maps.Map(document.getElementById('map'), {
 
 // Source gets loaded
 sourceRequest.onload = function() {
-	isChangingSource = false;
 	// Get sources
 	var foo = JSON.parse(sourceRequest.responseText);
     for(var $i = 0; $i < foo.length; $i++) {
@@ -36,6 +36,7 @@ sourceRequest.onload = function() {
 			var foo = JSON.parse(dataRequest.responseText);			
 			for (var $i = 0; $i < foo.length; $i++){
 				data.push(foo[$i]);
+                console.log(foo[3][0]);
 			}
 			
 			var i;
@@ -50,14 +51,14 @@ sourceRequest.onload = function() {
 				google.maps.event.addListener(marker, 'click', (function(marker, i) {		
 					return function() {
 						currentLocation = i; currentMarker = marker;
-						getData(0, true);
+						getData(0);
 					}
 				})(marker, i));
 				
 				// On marker hover start
 				google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
 					return function() {
-						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(35)[0] + ';"><b>' + calculateRating(35)[1] + '</b></p>'  );
+						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(data[i][3], threshold[0])[0] + ';"><b>' + calculateRating(data[i][3], threshold[0])[1] + '</b></p>'  );
 						hoverWindow.open(map, marker);
 					}
 				})(marker, i));
@@ -78,7 +79,7 @@ sourceRequest.onload = function() {
 sourceRequest.open("GET", "get_sources.php", true);
 sourceRequest.send();
 
-function getData(i, doRefresh) {
+function getData(i) {
 	dataRequest.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			console.log(dataRequest.responseText);
@@ -92,7 +93,7 @@ function getData(i, doRefresh) {
 				for ( var $i = 0; $i < foo.length; $i++){
 					data.push(foo[$i]);
 				}
-				onDataLoad(doRefresh);
+				onDataLoad();
 			}				
 		}
 	};
@@ -101,7 +102,7 @@ function getData(i, doRefresh) {
 }
 
 // Data gets loaded
-function onDataLoad(doRefresh) {	
+function onDataLoad() {	
 	// All the sub-column names
     var colNames = data[0];
 
@@ -110,6 +111,9 @@ function onDataLoad(doRefresh) {
 
     // Corresponding units to corresponding colNames EX: colNames[0] -> units[0]
     var units = data[2];
+
+    threshold = data[3];
+    console.log(threshold);
 
     // To get an array of unique tabs
     uniqueTabs = tabNum.filter(function(item, pos) {
@@ -129,8 +133,9 @@ function onDataLoad(doRefresh) {
         tempArray.push(colNames[$i]);
     }
 	
-	var contentString = '<h2 style = display:inline;>' + data[currentLocation][0] + '</h2><p style="color:' + calculateRating(34)[0] + '; display:inline; margin-left:10px"><b>' + calculateRating(34)[1] + '</b></p><br>';
-	
+    console.log(data[currentLocation]);
+	var contentString = '<h2 style = display:inline;>' + data[currentLocation][0] + '</h2><p style="color:' + calculateRating(data[currentLocation][3], threshold[0])[0] + '; display:inline; margin-left:10px"><b>' + calculateRating(data[currentLocation][3], threshold[0])[1] + '</b></p><br>';
+	           
 	// Dropdown
 	contentString = contentString + '<select id = "dropdown" onchange = onDropdownChange() style = "margin-top:15px">';
 	for(var j = 0; j < sources.length; j++) {
@@ -179,7 +184,7 @@ function onDataLoad(doRefresh) {
         // Make first content active, then loop through the rest of the contents
         contentString = contentString + '<div id="' + tabFirstIndexString + '" class ="subcontent" style = "display:block"> <div id = "' + tabFirstIndexString + '"></div> </div>'; 
         for(var index = 1; index < (mainCategories[uniqueTabs[j]]).length; index++) {
-            var tabLoopIndexString = "Tab" + parseInt(j + 1) + '-' + parseInt(index + 1);
+            var tabLoopIndexString = "Tab" + parseInt(j+1) + '-' + parseInt(index+1);
             contentString = contentString + '<div id="' + tabLoopIndexString + '\" class ="subcontent" style = "display:none"> <div id = "' + tabLoopIndexString + '"></div></div>' ;
         }
 
@@ -188,13 +193,8 @@ function onDataLoad(doRefresh) {
     }
 	
 	infoWindow.setContent(contentString);
-	console.log("refresh" + doRefresh);
-	if(doRefresh) {
-		infoWindow.open(map, currentMarker);
-		hoverWindow.close(map, currentMarker);
-	} else {
-		document.getElementById('dropdown').value = currentSource;
-	}
+	infoWindow.open(map, currentMarker);
+    hoverWindow.close(map, currentMarker);
 	
 	google.charts.load('current', {'packages':['corechart']});
 	
@@ -244,12 +244,14 @@ function onDataLoad(doRefresh) {
 function onDropdownChange() {
 	previousSource = currentSource;
 	currentSource = document.getElementById('dropdown').value;
-	getData(document.getElementById('dropdown').value, false);
+	getData(document.getElementById('dropdown').value);
 }
 
 // Return tuple of color and rating
-function calculateRating(rating) {
-    if(rating < 50)
+function calculateRating(rating, threshold) {
+    console.log("rating: " + rating);
+    console.log("threshold: " + threshold);
+    if(rating < threshold)
         return ["red", "UNSAFE"]
     else
         return ["green", "SAFE"]
