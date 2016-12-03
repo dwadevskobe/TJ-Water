@@ -61,7 +61,7 @@ sourceRequest.onload = function() {
 				// On marker hover start
 				google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
 					return function() {
-						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Water Quality: </b><p style="color:' + calculateRating(data[i][3], data[3][0])[0] + ';"><b>' + calculateRating(data[i][3], data[3][0])[1] + '</b></p>'  );
+						hoverWindow.setContent('<h3>' + data[i][0] + '</h3><b>Calidad: </b><p style="color:' + calculateRating(data[i][3], data[3][0])[0] + ';"><b>' + calculateRating(data[i][3], data[3][0])[1] + '</b></p>'  );
 						hoverWindow.open(map, marker);
 					}
 				})(marker, i));
@@ -114,6 +114,7 @@ function onDataLoad(doRefresh) {
     // Corresponding units to corresponding colNames EX: colNames[0] -> units[0]
     var units = data[2];
 
+    // Threshold values
     threshold = data[3];
 
     // To get an array of unique tabs
@@ -255,10 +256,9 @@ function onDropdownChange() {
 // Return tuple of color and rating
 function calculateRating(rating, threshold) {
     if(parseInt(rating) > parseInt(threshold))
-        return ["red", "UNSAFE"]
+        return ["red", "INSEGURA"]
     else
-        return ["green", "SAFE"]
-    // NOTE: parameters and conditions will change depending on client's requirements
+        return ["green", "SEGURA"]
 }
 
 // For the main tabs in the info window
@@ -306,28 +306,3 @@ function openSub(evt, cityName, j) {
     document.getElementById(cityName).style.display = "block";
     evt.currentTarget.className += " active";
 }
-
-/* NO LONGER NEEDED
-// For the subtab2 in the info window
-function openSub2(evt, cityName) {
-
-    // Declare all variables
-    var i, tabcontent, tablinks;
-
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("subcontent2");
-    for (i = 0; i < tabcontent.length; i++) {
-        tabcontent[i].style.display = "none";
-    }
-
-    // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("sublinks2");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-
-    // Show the current tab, and add an "active" class to the link that opened the tab
-    document.getElementById(cityName).style.display = "block";
-    evt.currentTarget.className += " active";
-}
-*/
