@@ -72,6 +72,13 @@ sourceRequest.onload = function() {
 						hoverWindow.close(map, marker);
 					}
 				})(marker, i));
+
+                // Click anywhere on the map to close current info window
+                google.maps.event.addListener(map, 'click', (function(marker, i) {
+                    return function() {
+                        infoWindow.close(map, marker);
+                    }
+                })(marker, i));
 			}					
 		}
 	};
