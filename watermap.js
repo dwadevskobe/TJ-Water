@@ -263,9 +263,9 @@ function onDropdownChange() {
 // Return tuple of color and rating
 function calculateRating(rating, threshold) {
     if(parseInt(rating) > parseInt(threshold))
-        return ["red", "INSEGURA"]
+        return ["red", "POBRE"]
     else
-        return ["green", "SEGURA"]
+        return ["green", "BUENO"]
 }
 
 // For the main tabs in the info window
