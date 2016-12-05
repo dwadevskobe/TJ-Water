@@ -21,7 +21,7 @@ if(isset($_POST["import"])) {
 	/** Set up connection with database and do related tasks **/
 	// Create connection
 	try {
-		$conn = new PDO("mysql:host=" . DB_HOST, DB_USER, DB_PASSWORD);
+		$conn = new PDO(DB_ADAPTER . ":host=" . DB_HOST, DB_USER, DB_PASSWORD);
 		printDebug("Connected successfully to the database.");
 	}
 	catch(PDOException $e) {		
@@ -154,7 +154,7 @@ if(isset($_POST["import"])) {
 					break;
 
 				$cell = $data->getCell($column . $row)->getCalculatedValue();
-							
+				
 				// If cell is empty, add empty value to array,
 				// else, add cell to array
 				if(empty($cell)) {
