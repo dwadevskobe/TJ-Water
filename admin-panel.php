@@ -351,6 +351,11 @@ function printDebug($string) {
 	$terminate - Boolean - determines whether to terminate the process on printing
 */
 function printError($string, $terminate) {
+	echo "There was an error while parsing the Excel file!";
+	echo "Please consult the <a href="https://docs.google.com/document/d/17dOb2efxTtzNrjni9kba32Qm1824V_EylqvzHwcNJOk/">manual</a> for troubleshooting.";
+	echo "<br/>";
+	echo "ERROR:";
+	echo "<br/>";
 	echo $string;
 	echo "<br/>";
 	if($terminate === TRUE)
