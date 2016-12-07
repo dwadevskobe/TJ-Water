@@ -202,8 +202,7 @@ if(isset($_POST["import"])) {
 			printDebug("Successfully created table 'data_$currentSource'");
 		}
 		catch(PDOException $e) {
-			printError("Error creating table '$string': " . $e->getMessage(), false);
-			printError($query, true);
+			printError("Error creating table '$string': " . $e->getMessage() . "</br>" . $query, true);
 		}
 
 		// Increment source index for next run
@@ -243,8 +242,7 @@ function createTable($conn, $name, $columns) {
 		printDebug("Successfully created table '" . $name ."'");
 	}
 	catch(PDOException $e) {
-		printError("Error creating table '$name': " . $e->getMessage(), false);
-		printError($query, true);
+		printError("Error creating table '$name': " . $e->getMessage() . "</br>" . $query, true);
 	}
 }
 
@@ -289,8 +287,7 @@ function createDatabase($conn, $db) {
 		printDebug("The database $db has been created successfully");
 	}
 	catch(PDOException $e) {
-		printError("Error creating database: " . $e->getMessage(), false);
-		printError($query, true);
+		printError("Error creating database: " . $e->getMessage() . "</br>" . $query, true);
 	}
 }
 
@@ -351,11 +348,8 @@ function printDebug($string) {
 	$terminate - Boolean - determines whether to terminate the process on printing
 */
 function printError($string, $terminate) {
-	echo "There was an error while parsing the Excel file!";
-	echo "Please consult the <a href="https://docs.google.com/document/d/17dOb2efxTtzNrjni9kba32Qm1824V_EylqvzHwcNJOk/">manual</a> for troubleshooting.";
-	echo "<br/>";
-	echo "ERROR:";
-	echo "<br/>";
+	echo "There was an error while parsing the Excel file!<br/>";
+	echo "Please consult the <a href='https://docs.google.com/document/d/17dOb2efxTtzNrjni9kba32Qm1824V_EylqvzHwcNJOk/'>manual</a> for troubleshooting.<br/><br/>";
 	echo $string;
 	echo "<br/>";
 	if($terminate === TRUE)
